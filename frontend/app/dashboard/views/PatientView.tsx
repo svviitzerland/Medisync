@@ -43,8 +43,8 @@ interface VisitTicket {
   created_at: string;
   doctor_note: string | null;
   doctor_id: string | null;
-  // Joined from doctors → profiles via doctor_id FK
-  doctors: { profiles: { name: string } | null } | null;
+  // Joined from profiles via doctor_id FK
+  doctor_profiles: { name: string } | null;
 }
 
 type PatientInvoice = Omit<InvoiceType, "tickets"> & {
@@ -95,7 +95,7 @@ export default function PatientView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("tickets")
       .select(
-        "id, fo_note, status, created_at, doctor_note, doctor_id, doctors!doctor_id(profiles(name))",
+        "id, fo_note, status, created_at, doctor_note, doctor_id, doctor_profiles:profiles!doctor_id(name)",
       )
       .eq("patient_id", userId)
       .order("created_at", { ascending: false })
@@ -640,7 +640,7 @@ export default function PatientView({ userId }: { userId: string }) {
                       className={cn(
                         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                         STATUS_COLORS[ticket.status] ??
-                          "bg-muted text-muted-foreground",
+                        "bg-muted text-muted-foreground",
                       )}
                     >
                       {ticket.status?.replace(/_/g, " ")}
@@ -649,9 +649,9 @@ export default function PatientView({ userId }: { userId: string }) {
                       <Clock className="size-3" />
                       {formatDate(ticket.created_at)}
                     </span>
-                    {ticket.doctors?.profiles?.name && (
+                    {ticket.doctor_profiles?.name && (
                       <span className="text-xs text-muted-foreground">
-                        Dr. {ticket.doctors.profiles.name}
+                        Dr. {ticket.doctor_profiles.name}
                       </span>
                     )}
                   </div>
@@ -871,7 +871,7 @@ export default function PatientView({ userId }: { userId: string }) {
                     className={cn(
                       "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                       STATUS_COLORS[visit.status] ??
-                        "bg-muted text-muted-foreground",
+                      "bg-muted text-muted-foreground",
                     )}
                   >
                     {visit.status?.replace(/_/g, " ")}
@@ -887,7 +887,7 @@ export default function PatientView({ userId }: { userId: string }) {
                   <div
                     className={cn(
                       "flex size-7 shrink-0 items-center justify-center rounded-full",
-                      visit.doctors?.profiles?.name
+                      visit.doctor_profiles?.name
                         ? "bg-sky-400/10"
                         : "bg-muted",
                     )}
@@ -895,7 +895,7 @@ export default function PatientView({ userId }: { userId: string }) {
                     <UserRound
                       className={cn(
                         "size-3.5",
-                        visit.doctors?.profiles?.name
+                        visit.doctor_profiles?.name
                           ? "text-sky-400"
                           : "text-muted-foreground/40",
                       )}
@@ -905,9 +905,9 @@ export default function PatientView({ userId }: { userId: string }) {
                     <p className="text-[10px] leading-none text-muted-foreground mb-0.5">
                       Assigned Doctor
                     </p>
-                    {visit.doctors?.profiles?.name ? (
+                    {visit.doctor_profiles?.name ? (
                       <p className="text-sm font-medium">
-                        Dr. {visit.doctors.profiles.name}
+                        Dr. {visit.doctor_profiles.name}
                       </p>
                     ) : (
                       <p className="text-xs italic text-muted-foreground/60">

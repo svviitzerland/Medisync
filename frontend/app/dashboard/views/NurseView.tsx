@@ -39,7 +39,7 @@ export default function NurseView({ userId }: { userId: string }) {
 
     // Get nurse's team
     const { data: nurseData } = await supabase
-      .from("nurses")
+      .from("profiles")
       .select("team_id")
       .eq("id", userId)
       .single();
@@ -211,7 +211,7 @@ export default function NurseView({ userId }: { userId: string }) {
                   className={cn(
                     "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize shrink-0",
                     STATUS_COLORS[patient.status] ??
-                      "bg-muted text-muted-foreground",
+                    "bg-muted text-muted-foreground",
                   )}
                 >
                   {patient.status?.replace(/_/g, " ")}

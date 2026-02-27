@@ -5,6 +5,7 @@ CREATE TYPE room_type AS ENUM ('inpatient', 'operation', 'consultation', 'icu', 
 CREATE TYPE shift_type AS ENUM ('morning', 'afternoon', 'night');
 
 -- TABLE: profiles
+-- Unified table for ALL users. Role-specific columns are nullable.
 CREATE TABLE profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     nik VARCHAR(16) UNIQUE, 
@@ -13,17 +14,28 @@ CREATE TABLE profiles (
     age INT,
     phone VARCHAR(20),
     email VARCHAR(255),
+
+    -- Doctor-specific
+    specialization VARCHAR(100),
+
+    -- Nurse-specific
+    team_id INT,               -- will be FK'd after nurse_teams is created
+    shift shift_type,
+    telegram_id VARCHAR(100),
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_profiles_nik ON profiles(nik);
+CREATE INDEX idx_profiles_role ON profiles(role);
+CREATE INDEX idx_profiles_specialization ON profiles(specialization);
 
--- TRIGGER: Sinkronisasi auth.users ke profiles
+-- TRIGGER: Sync auth.users → profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, nik, role, name, age, phone, email)
+  INSERT INTO public.profiles (id, nik, role, name, age, phone, email, specialization)
   VALUES (
     new.id,
     new.raw_user_meta_data->>'nik',
@@ -31,7 +43,8 @@ BEGIN
     new.raw_user_meta_data->>'name',
     (new.raw_user_meta_data->>'age')::int,
     new.raw_user_meta_data->>'phone',
-    new.email
+    new.email,
+    new.raw_user_meta_data->>'specialization'
   );
   RETURN new;
 END;

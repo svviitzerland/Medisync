@@ -44,7 +44,7 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
           .from("profiles")
           .select("id", { count: "exact", head: true })
           .eq("role", "patient"),
-        supabase.from("doctors").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "doctor_specialist"),
         supabase.from("tickets").select("id", { count: "exact", head: true }),
         supabase.from("invoices").select("medicine_fee, room_fee, doctor_fee"),
       ]);

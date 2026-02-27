@@ -37,9 +37,9 @@ interface HistoryTicket {
   doctor_note: string | null;
   status: string;
   created_at: string;
-  doctors: {
+  doctor_profiles: {
+    name: string;
     specialization: string;
-    profiles: { name: string } | null;
   } | null;
 }
 
@@ -115,7 +115,7 @@ export default function DoctorView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("tickets")
       .select(
-        "id, fo_note, doctor_note, status, created_at, doctors(specialization, profiles(name))",
+        "id, fo_note, doctor_note, status, created_at, doctor_profiles:profiles!doctor_id(name, specialization)",
       )
       .eq("patient_id", patient.id)
       .order("created_at", { ascending: false })

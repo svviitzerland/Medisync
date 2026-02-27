@@ -58,7 +58,7 @@ async def create_ticket(
 
         if requires_inpatient:
             # round-robin ...
-            nurses_res = supabase.table("nurses").select("team_id").execute()
+            nurses_res = supabase.table("profiles").select("team_id").eq("role", "nurse").not_.is_("team_id", "null").execute()
             active_teams = (
                 set([n["team_id"] for n in nurses_res.data])
                 if nurses_res.data

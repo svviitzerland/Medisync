@@ -27,8 +27,7 @@ def _get_ticket_context(ticket_id: str) -> dict:
         res = (
             supabase.table("tickets")
             .select(
-                "id, patient_id, fo_note, doctor_note, status, severity_level, created_at, "
-                "doctor:doctors(specialization, profile:profiles(name))"
+                "id, patient_id, fo_note, doctor_note, status, severity_level, created_at, doctor_id"
             )
             .eq("id", ticket_id)
             .single()
@@ -42,12 +41,20 @@ def _get_ticket_context(ticket_id: str) -> dict:
 
         context["patient_id"] = ticket["patient_id"]
 
+        # Resolve doctor info from profiles
         doc_name = "N/A"
         doc_spec = "N/A"
-        if ticket.get("doctor"):
-            doc_spec = ticket["doctor"].get("specialization", "N/A")
-            if ticket["doctor"].get("profile"):
-                doc_name = ticket["doctor"]["profile"].get("name", "N/A")
+        if ticket.get("doctor_id"):
+            doc_res = (
+                supabase.table("profiles")
+                .select("name, specialization")
+                .eq("id", ticket["doctor_id"])
+                .single()
+                .execute()
+            )
+            if doc_res.data:
+                doc_name = doc_res.data.get("name", "N/A")
+                doc_spec = doc_res.data.get("specialization", "N/A")
 
         context["ticket"] = {
             "ticket_id": ticket["id"],
@@ -67,8 +74,7 @@ def _get_ticket_context(ticket_id: str) -> dict:
         history_res = (
             supabase.table("tickets")
             .select(
-                "id, fo_note, doctor_note, status, severity_level, created_at, "
-                "doctor:doctors(specialization, profile:profiles(name))"
+                "id, fo_note, doctor_note, status, severity_level, created_at, doctor_id"
             )
             .eq("patient_id", ticket["patient_id"])
             .neq("id", ticket_id)
@@ -77,21 +83,31 @@ def _get_ticket_context(ticket_id: str) -> dict:
             .execute()
         )
 
+        # Collect doctor IDs from history
+        hist_doc_ids = list(set(
+            h["doctor_id"] for h in (history_res.data or []) if h.get("doctor_id")
+        ))
+        hist_doc_map = {}
+        if hist_doc_ids:
+            hd_res = (
+                supabase.table("profiles")
+                .select("id, name, specialization")
+                .in_("id", hist_doc_ids)
+                .execute()
+            )
+            for d in hd_res.data or []:
+                hist_doc_map[d["id"]] = {"name": d.get("name", "N/A"), "specialization": d.get("specialization", "N/A")}
+
         context["history"] = []
         for h in history_res.data or []:
             if h.get("doctor_note"):
-                h_doc_name = "N/A"
-                h_doc_spec = "N/A"
-                if h.get("doctor"):
-                    h_doc_spec = h["doctor"].get("specialization", "N/A")
-                    if h["doctor"].get("profile"):
-                        h_doc_name = h["doctor"]["profile"].get("name", "N/A")
+                hd = hist_doc_map.get(h.get("doctor_id"), {})
                 context["history"].append(
                     {
                         "complaint": h.get("fo_note", ""),
                         "doctor_diagnosis": h.get("doctor_note", ""),
-                        "doctor_name": h_doc_name,
-                        "specialization": h_doc_spec,
+                        "doctor_name": hd.get("name", "N/A"),
+                        "specialization": hd.get("specialization", "N/A"),
                         "date": h.get("created_at", ""),
                     }
                 )
