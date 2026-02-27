@@ -1,6 +1,8 @@
 import json
+from typing import Literal
 from strands import tool
 from database import supabase
+
 
 @tool
 def get_available_doctors() -> str:
@@ -11,14 +13,20 @@ def get_available_doctors() -> str:
         JSON string containing a list of doctors with their id, name, and specialization.
     """
     try:
-        res = supabase.table("doctors").select("id, specialization, profile:profiles(name)").execute()
+        res = (
+            supabase.table("doctors")
+            .select("id, specialization, profile:profiles(name)")
+            .execute()
+        )
         doctors = []
-        for doc in (res.data or []):
-            doctors.append({
-                "id": doc["id"],
-                "name": doc["profile"]["name"] if doc.get("profile") else "Unknown",
-                "specialization": doc["specialization"]
-            })
+        for doc in res.data or []:
+            doctors.append(
+                {
+                    "id": doc["id"],
+                    "name": doc["profile"]["name"] if doc.get("profile") else "Unknown",
+                    "specialization": doc["specialization"],
+                }
+            )
         return json.dumps(doctors, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -39,14 +47,16 @@ def get_patient_history(patient_id: str) -> str:
     try:
         res = (
             supabase.table("tickets")
-            .select("id, fo_note, doctor_note, status, created_at, doctor:doctors(specialization, profile:profiles(name))")
+            .select(
+                "id, fo_note, doctor_note, status, created_at, doctor:doctors(specialization, profile:profiles(name))"
+            )
             .eq("patient_id", patient_id)
             .order("created_at", desc=True)
             .limit(10)
             .execute()
         )
         history = []
-        for ticket in (res.data or []):
+        for ticket in res.data or []:
             doc_name = "N/A"
             doc_spec = "N/A"
             if ticket.get("doctor"):
@@ -54,20 +64,24 @@ def get_patient_history(patient_id: str) -> str:
                 if ticket["doctor"].get("profile"):
                     doc_name = ticket["doctor"]["profile"].get("name", "N/A")
 
-            history.append({
-                "ticket_id": ticket["id"],
-                "complaint": ticket.get("fo_note", ""),
-                "doctor_diagnosis": ticket.get("doctor_note", ""),
-                "doctor_name": doc_name,
-                "specialization": doc_spec,
-                "status": ticket["status"],
-                "was_inpatient": ticket["status"] in ("inpatient", "operation"),
-                "date": ticket.get("created_at", "")
-            })
-        
+            history.append(
+                {
+                    "ticket_id": ticket["id"],
+                    "complaint": ticket.get("fo_note", ""),
+                    "doctor_diagnosis": ticket.get("doctor_note", ""),
+                    "doctor_name": doc_name,
+                    "specialization": doc_spec,
+                    "status": ticket["status"],
+                    "was_inpatient": ticket["status"] in ("inpatient", "operation"),
+                    "date": ticket.get("created_at", ""),
+                }
+            )
+
         if not history:
-            return json.dumps({"message": "This patient has no prior medical history (new patient)."})
-        
+            return json.dumps(
+                {"message": "This patient has no prior medical history (new patient)."}
+            )
+
         return json.dumps(history, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -79,8 +93,8 @@ def submit_triage_decision(
     recommended_doctor_name: str,
     predicted_specialization: str,
     requires_inpatient: bool,
-    severity_level: str,
-    reasoning: str
+    severity_level: Literal["low", "medium", "high"],
+    reasoning: str,
 ) -> str:
     """Submits the final triage decision after analyzing the complaint, doctor availability, and patient history.
     MUST be called as the final step after analysis is complete.
@@ -90,7 +104,7 @@ def submit_triage_decision(
         recommended_doctor_name: Name of the recommended doctor.
         predicted_specialization: Target specialization (e.g., Neurology, Pediatrics, General Surgery, etc.).
         requires_inpatient: True if the patient requires inpatient care, False for outpatient.
-        severity_level: Severity level: 'low', 'medium', or 'high'.
+        severity_level: Severity level. MUST BE EXACTLY ONE OF: 'low', 'medium', or 'high'. Do not use 'medium-high' or other variations.
         reasoning: Comprehensive explanation of why this decision was made, including patient history and severity level considerations.
 
     Returns:
@@ -102,6 +116,24 @@ def submit_triage_decision(
         "predicted_specialization": predicted_specialization,
         "requires_inpatient": requires_inpatient,
         "severity_level": severity_level,
-        "reasoning": reasoning
+        "reasoning": reasoning,
     }
-    return json.dumps({"status": "decision_recorded", "decision": decision}, ensure_ascii=False)
+    return json.dumps(
+        {"status": "decision_recorded", "decision": decision}, ensure_ascii=False
+    )
+
+
+@tool
+def reject_complaint(reasoning: str) -> str:
+    """Rejects the patient complaint if it is gibberish, nonsensical, or clearly not a medical issue.
+    MUST be called as the final step if the complaint cannot be triaged safely.
+
+    Args:
+        reasoning: Comprehensive explanation of why the complaint was rejected.
+
+    Returns:
+        Confirmation that the complaint has been rejected.
+    """
+    return json.dumps(
+        {"status": "rejected", "reasoning": reasoning}, ensure_ascii=False
+    )

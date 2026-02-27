@@ -3,6 +3,7 @@ from agents.triage import analyze_patient
 
 router = APIRouter()
 
+
 @router.post("/analyze-ticket")
 async def analyze_ticket(fo_note: str = Body(...), patient_id: str = Body(None)):
     """

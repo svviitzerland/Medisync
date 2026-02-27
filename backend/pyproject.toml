@@ -30,3 +30,6 @@ dev = [
 
 [tool.poe.tasks]
 dev = "fastapi dev main.py"
+
+[tool.poe.tasks.format]
+shell = "ruff check --fix && ruff format"
