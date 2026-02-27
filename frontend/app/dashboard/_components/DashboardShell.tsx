@@ -18,6 +18,7 @@ import {
   Activity,
   CreditCard,
   MessageCircle,
+  ClipboardCheck,
   LogOut,
   Menu,
   X,
@@ -60,6 +61,7 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
   ],
   patient: [
     { label: "Medical Status", icon: Activity, tab: null },
+    { label: "Pre-Assessment", icon: ClipboardCheck, tab: "pre-assessment" },
     { label: "Billing History", icon: CreditCard, tab: "billing" },
     { label: "Ask AI", icon: MessageCircle, tab: "chat" },
   ],
