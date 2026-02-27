@@ -20,7 +20,12 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
 import { STATUS_COLORS } from "@/lib/config";
-import { doctorAssist, completeCheckup, ApiError } from "@/lib/api";
+import {
+  doctorAssist,
+  completeCheckup,
+  ApiError,
+  type AISuggestion,
+} from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,6 +41,26 @@ interface HistoryTicket {
     specialization: string;
     profiles: { name: string } | null;
   } | null;
+}
+
+function formatAISuggestion(s: AISuggestion): string {
+  const medicineList = s.medicines
+    .map(
+      (m) =>
+        `  - ${m.name} (qty: ${m.quantity})${m.notes ? ` — ${m.notes}` : ""}`,
+    )
+    .join("\n");
+  return [
+    `Diagnosis: ${s.diagnosis}`,
+    ``,
+    `Treatment Plan:\n${s.treatment_plan}`,
+    medicineList ? `\nMedicines:\n${medicineList}` : "",
+    ``,
+    `Requires Inpatient: ${s.requires_inpatient ? "Yes" : "No"}`,
+    `\nReasoning: ${s.reasoning}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export default function DoctorView({ userId }: { userId: string }) {
@@ -109,8 +134,9 @@ export default function DoctorView({ userId }: { userId: string }) {
         doctorNote || undefined,
       );
       if (data.suggestion) {
-        setAiSuggestion(data.suggestion);
-        if (!doctorNote) setDoctorNote(data.suggestion);
+        const formatted = formatAISuggestion(data.suggestion);
+        setAiSuggestion(formatted);
+        if (!doctorNote) setDoctorNote(formatted);
       }
     } catch {
       // AI assist is optional, silently fail

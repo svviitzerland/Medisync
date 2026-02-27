@@ -42,7 +42,9 @@ export interface Ticket {
 // ─── AI Types ────────────────────────────────────────────────────────────────
 
 export interface AIAnalysis {
+  predicted_specialization?: string;
   recommended_doctor_id: string;
+  recommended_doctor_name?: string;
   requires_inpatient: boolean;
   severity_level: SeverityLevel;
   reasoning: string;

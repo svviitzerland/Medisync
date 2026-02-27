@@ -107,7 +107,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
     try {
       const data = await analyzeTicket(foNote, patientInfo?.id ?? null);
       if (data.status === "success") {
-        setAnalysis(data.analysis);
+        setAnalysis(data.analysis ?? null);
       } else {
         setAnalysisError(data.message ?? "AI analysis failed");
       }
