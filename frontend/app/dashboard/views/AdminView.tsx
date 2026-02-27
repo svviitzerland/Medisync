@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 import { ROLE_COLORS, ROLE_LABELS } from "@/lib/config";
-import { getAdminStats, ApiError } from "@/lib/api";
+
 import { supabase } from "@/lib/supabase";
 import type { AdminStats, StaffMember, Invoice } from "@/types";
 
@@ -37,14 +37,6 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
 
   async function fetchStats() {
     setLoading(true);
-    try {
-      const data = await getAdminStats();
-      setStats(data);
-      return;
-    } catch (err) {
-      if (!(err instanceof ApiError)) throw err;
-      // Fall back to direct Supabase queries
-    }
 
     const [patientsRes, doctorsRes, ticketsRes, invoicesRes] =
       await Promise.all([
@@ -217,7 +209,7 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
                           className={cn(
                             "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
                             ROLE_COLORS[member.role] ??
-                              "bg-muted text-muted-foreground",
+                            "bg-muted text-muted-foreground",
                           )}
                         >
                           {ROLE_LABELS[member.role] ?? member.role}

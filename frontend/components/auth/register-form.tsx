@@ -81,6 +81,7 @@ export function RegisterForm() {
 
     try {
       // 1. Sign up with Supabase Auth — role is always patient
+      // The database trigger will automatically create the profile using this metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password,
@@ -88,6 +89,9 @@ export function RegisterForm() {
           data: {
             role: "patient",
             name: form.fullName.trim(),
+            nik: form.nik,
+            phone: form.phone.trim(),
+            ...(form.age ? { age: Number(form.age) } : {}),
           },
         },
       });
@@ -99,22 +103,6 @@ export function RegisterForm() {
 
       if (!authData.user) {
         setError("Registration failed. Please try again.");
-        return;
-      }
-
-      // 2. Insert patient profile into the profiles table
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user.id,
-        email: form.email.trim(),
-        name: form.fullName.trim(),
-        role: "patient",
-        nik: form.nik,
-        phone: form.phone.trim(),
-        ...(form.age ? { age: Number(form.age) } : {}),
-      });
-
-      if (profileError) {
-        setError(profileError.message);
         return;
       }
 

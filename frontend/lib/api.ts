@@ -5,7 +5,7 @@
  */
 
 import { BACKEND_URL } from "@/lib/config";
-import type { AIAnalysis, AdminStats } from "@/types";
+import type { AIAnalysis } from "@/types";
 
 // ─── Error Type ──────────────────────────────────────────────────────────────
 
@@ -166,8 +166,3 @@ export function registerPatient(
 }
 
 // ─── Admin Endpoints ─────────────────────────────────────────────────────────
-
-/** GET /api/admin/stats */
-export function getAdminStats(): Promise<AdminStats> {
-  return get("/api/admin/stats");
-}
