@@ -50,7 +50,7 @@ export function Navbar() {
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="#login">Sign In</Link>
+              <Link href="/login">Sign In</Link>
             </Button>
             <Button size="sm" asChild>
               <Link href="#get-started">Get Started</Link>
