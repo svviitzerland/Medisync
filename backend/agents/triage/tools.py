@@ -87,7 +87,7 @@ def get_patient_history(patient_id: str) -> str:
                     "doctor_name": doc_info.get("name", "N/A"),
                     "specialization": doc_info.get("specialization", "N/A"),
                     "status": ticket["status"],
-                    "was_inpatient": ticket["status"] in ("inpatient", "operation"),
+                    "was_inpatient": False,
                     "date": ticket.get("created_at", ""),
                 }
             )
@@ -134,7 +134,12 @@ def submit_triage_decision(
         "reasoning": reasoning,
     }
     return json.dumps(
-        {"status": "decision_recorded", "decision": decision}, ensure_ascii=False
+        {
+            "status": "decision_recorded",
+            "decision": decision,
+            "instruction": "DONE. Your decision has been recorded. Do NOT call any more tools. Respond with a brief summary.",
+        },
+        ensure_ascii=False,
     )
 
 

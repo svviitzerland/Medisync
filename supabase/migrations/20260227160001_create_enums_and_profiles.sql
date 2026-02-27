@@ -1,6 +1,6 @@
 -- ENUMS
 CREATE TYPE user_role AS ENUM ('patient', 'admin', 'fo', 'doctor_specialist', 'nurse', 'pharmacist', 'agent');
-CREATE TYPE ticket_status AS ENUM ('draft', 'assigned_doctor', 'inpatient', 'operation', 'waiting_pharmacy', 'completed');
+CREATE TYPE ticket_status AS ENUM ('pending', 'in_progress', 'completed');
 CREATE TYPE room_type AS ENUM ('inpatient', 'operation', 'consultation', 'icu', 'emergency');
 CREATE TYPE shift_type AS ENUM ('morning', 'afternoon', 'night');
 
@@ -73,3 +73,4 @@ TO authenticated
 USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'doctor_specialist', 'nurse', 'pharmacist')
 );
+

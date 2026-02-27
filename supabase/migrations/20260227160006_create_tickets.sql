@@ -5,7 +5,7 @@ CREATE TABLE tickets (
     doctor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     fo_note TEXT,
     doctor_note TEXT,
-    status ticket_status DEFAULT 'draft',
+    status ticket_status DEFAULT 'pending',
     room_id INT REFERENCES rooms(id) ON DELETE SET NULL,
     nurse_team_id INT REFERENCES nurse_teams(id) ON DELETE SET NULL,
     consultation_fee DECIMAL(10,2) DEFAULT 0,
@@ -46,4 +46,14 @@ ON tickets FOR UPDATE
 TO authenticated 
 USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'doctor_specialist', 'nurse', 'pharmacist', 'agent')
+);
+
+-- Patients can see profiles of doctors assigned to their tickets
+CREATE POLICY "Patients can view assigned doctor profiles"
+ON profiles FOR SELECT
+TO authenticated
+USING (
+    id IN (
+        SELECT doctor_id FROM tickets WHERE patient_id = auth.uid() AND doctor_id IS NOT NULL
+    )
 );

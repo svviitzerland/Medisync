@@ -110,7 +110,7 @@ def get_current_ticket(patient_id: str) -> str:
                 "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at"
             )
             .eq("patient_id", patient_id)
-            .in_("status", ["assigned_doctor", "in_progress"])
+            .in_("status", ["in_progress"])
             .order("created_at", desc=True)
             .limit(1)
             .execute()
@@ -173,6 +173,10 @@ def submit_doctor_suggestion(
         "reasoning": reasoning,
     }
     return json.dumps(
-        {"status": "suggestion_recorded", "suggestion": suggestion},
+        {
+            "status": "suggestion_recorded",
+            "suggestion": suggestion,
+            "instruction": "DONE. Your suggestion has been recorded. Do NOT call any more tools. Respond with a brief summary to the doctor.",
+        },
         ensure_ascii=False,
     )

@@ -155,10 +155,16 @@ export function createTicket(
   return post("/api/tickets/create", payload);
 }
 
+export interface PrescriptionItem {
+  medicine_id: number;
+  quantity: number;
+  notes?: string;
+}
+
 export interface CompleteCheckupPayload {
   doctor_note: string;
-  require_pharmacy?: boolean;
-  requires_inpatient?: boolean;
+  prescriptions?: PrescriptionItem[];
+  doctor_fee?: number;
 }
 
 /** POST /api/tickets/{ticket_id}/complete-checkup */
@@ -231,6 +237,8 @@ export interface SubmitPreAssessmentResponse {
   status: "success" | "error";
   ticket_id?: string;
   assessment_id?: string;
+  ai_summary?: string;
+  suggested_doctor_id?: string | null;
   detail?: string;
 }
 
