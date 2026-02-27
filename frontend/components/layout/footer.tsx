@@ -3,29 +3,13 @@ import { HeartPulseIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const footerLinks = {
-  Product: [
+  Platform: [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Security", href: "#security" },
   ],
-  Healthcare: [
-    { label: "For Patients", href: "#patients" },
-    { label: "For Providers", href: "#providers" },
-    { label: "For Hospitals", href: "#hospitals" },
-    { label: "Integrations", href: "#integrations" },
-  ],
-  Company: [
-    { label: "About Us", href: "#about" },
-    { label: "Blog", href: "#blog" },
-    { label: "Careers", href: "#careers" },
-    { label: "Contact", href: "#contact" },
-  ],
-  Legal: [
-    { label: "Privacy Policy", href: "#privacy" },
-    { label: "Terms of Service", href: "#terms" },
-    { label: "HIPAA Compliance", href: "#hipaa" },
-    { label: "Cookie Policy", href: "#cookies" },
+  Account: [
+    { label: "Sign In", href: "/login" },
+    { label: "Sign Up", href: "/register" },
   ],
 };
 
@@ -34,9 +18,9 @@ export function Footer() {
     <footer className="border-t border-border bg-background">
       <div className="py-12 section-container lg:py-16">
         {/* Top section */}
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-5 lg:gap-12">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:gap-12">
           {/* Brand */}
-          <div className="col-span-2 sm:col-span-2 md:col-span-1">
+          <div className="col-span-2 sm:col-span-1">
             <Link
               href="/"
               className="flex items-center gap-2 text-lg font-semibold"
@@ -53,8 +37,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="max-w-xs mt-4 text-sm leading-relaxed text-muted-foreground">
-              AI-powered healthcare synchronization that connects patients and
-              providers seamlessly.
+              AI-powered healthcare coordination connecting patients, doctors,
+              nurses, and pharmacists in one unified platform.
             </p>
           </div>
 

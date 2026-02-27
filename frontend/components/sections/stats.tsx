@@ -1,23 +1,23 @@
 const stats = [
   {
-    value: "10,000+",
-    label: "Patients Onboarded",
-    description: "Across Indonesia since launch",
+    value: "6",
+    label: "Care Roles",
+    description: "Patient, Front Office, Doctor, Nurse, Pharmacist, Admin",
   },
   {
-    value: "500+",
-    label: "Healthcare Providers",
-    description: "Hospitals, clinics & labs",
+    value: "AI",
+    label: "Triage Engine",
+    description: "Automated specialist matching & severity analysis",
   },
   {
-    value: "99.9%",
-    label: "Platform Uptime",
-    description: "Enterprise-grade reliability",
+    value: "100%",
+    label: "Digital Workflow",
+    description: "From ticket creation to prescription fulfillment",
   },
   {
-    value: "4.9 / 5",
-    label: "Patient Satisfaction",
-    description: "Based on 2,400+ reviews",
+    value: "One",
+    label: "Unified Platform",
+    description: "All roles, all data, all care stages in one place",
   },
 ];
 

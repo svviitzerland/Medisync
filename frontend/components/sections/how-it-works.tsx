@@ -1,27 +1,27 @@
-import { UserPlusIcon, RefreshCcwDotIcon, SparklesIcon } from "lucide-react";
+import { UserPlusIcon, ClipboardPlusIcon, SparklesIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const steps = [
   {
     number: "01",
     icon: UserPlusIcon,
-    title: "Create Your Profile",
+    title: "Sign Up as a Patient",
     description:
-      "Sign up in minutes. Connect your existing healthcare providers, input your medical history, and grant secure access to your care team.",
+      "Create your patient account in minutes. Provide your basic profile information and you're ready to access Medisync's full care coordination platform.",
   },
   {
     number: "02",
-    icon: RefreshCcwDotIcon,
-    title: "Sync Your Records",
+    icon: ClipboardPlusIcon,
+    title: "Open a Ticket — Your Way",
     description:
-      "Medisync automatically pulls and harmonizes data from hospitals, labs, clinics, and pharmacies - keeping everything current without any manual effort.",
+      "Submit a health ticket yourself directly from your patient dashboard, or have front office staff create one for you when you arrive at the clinic. Either way, the AI immediately analyzes urgency and routes you to the right specialist.",
   },
   {
     number: "03",
     icon: SparklesIcon,
-    title: "Get AI-Powered Insights",
+    title: "AI Routes You to the Right Doctor",
     description:
-      "Our AI engine analyzes your unified health data to deliver actionable recommendations, flag anomalies early, and help you have more informed conversations with your doctors.",
+      "Your ticket is automatically assigned to the best-matched doctor. They review it, add their notes and prescription, and hand off to nursing or pharmacy — all within the platform.",
   },
 ];
 
@@ -42,12 +42,12 @@ export function HowItWorksSection() {
             id="hiw-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Up and running{" "}
-            <span className="text-gradient-primary">in three steps</span>
+            From check-in to prescription,{" "}
+            <span className="text-gradient-primary">fully coordinated</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            Getting started with Medisync is simple. No complex setup, no
-            integration headaches - just seamless healthcare from day one.
+            Medisync handles the entire patient journey — no manual handoffs, no
+            lost information, no waiting for someone to make a call.
           </p>
         </div>
 

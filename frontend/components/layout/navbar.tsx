@@ -6,7 +6,6 @@ const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Testimonials", href: "#testimonials" },
-  { label: "Pricing", href: "#pricing" },
 ];
 
 export function Navbar() {
@@ -53,7 +52,7 @@ export function Navbar() {
               <Link href="/login">Sign In</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="#get-started">Get Started</Link>
+              <Link href="/register">Sign Up</Link>
             </Button>
           </div>
 

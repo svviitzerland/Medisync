@@ -28,29 +28,8 @@ const DEV_ACCOUNTS: Role[] = [
       "bg-violet-500/10 text-violet-400 ring-violet-500/20 hover:bg-violet-500/20 hover:text-violet-300",
   },
   {
-    label: "Dr. House (Diagnostics)",
+    label: "Doctor",
     email: "house.diagnostics@medisync.local",
-    password: "password123",
-    color:
-      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
-  },
-  {
-    label: "Dr. Shepherd (Neurology)",
-    email: "derek.neuro@medisync.local",
-    password: "password123",
-    color:
-      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
-  },
-  {
-    label: "Dr. Robbins (Pediatrics)",
-    email: "arizona.peds@medisync.local",
-    password: "password123",
-    color:
-      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
-  },
-  {
-    label: "Dr. Montgomery (Ob/Gyn)",
-    email: "addison.obgyn@medisync.local",
     password: "password123",
     color:
       "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
@@ -63,14 +42,14 @@ const DEV_ACCOUNTS: Role[] = [
       "bg-amber-500/10 text-amber-400 ring-amber-500/20 hover:bg-amber-500/20 hover:text-amber-300",
   },
   {
-    label: "Nurse (Alpha Morning)",
+    label: "Nurse",
     email: "nurse.alpha.morning.0@medisync.local",
     password: "password123",
     color:
       "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300",
   },
   {
-    label: "Patient (John Smith)",
+    label: "Patient",
     email: "patient2@example.com",
     password: "password123",
     color:
