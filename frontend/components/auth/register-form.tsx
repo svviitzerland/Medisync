@@ -57,6 +57,8 @@ export function RegisterForm() {
   function validate(): string | null {
     if (!form.fullName.trim()) return "Full name is required.";
     if (!form.email.trim()) return "Email address is required.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+      return "Please enter a valid email address.";
     if (!/^\d{16}$/.test(form.nik)) return "NIK must be exactly 16 digits.";
     if (!form.phone.trim()) return "Phone number is required.";
     if (form.age && (isNaN(Number(form.age)) || Number(form.age) <= 0))
@@ -91,13 +93,19 @@ export function RegisterForm() {
             name: form.fullName.trim(),
             nik: form.nik,
             phone: form.phone.trim(),
-            ...(form.age ? { age: Number(form.age) } : {}),
+            age: form.age ? parseInt(form.age) : null,
           },
         },
       });
 
       if (authError) {
-        setError(authError.message);
+        if (authError.code === "email_address_invalid") {
+          setError(
+            "This email address is not accepted. Please use a real email address (e.g. you@gmail.com).",
+          );
+        } else {
+          setError(authError.message);
+        }
         return;
       }
 
@@ -122,8 +130,8 @@ export function RegisterForm() {
   if (success) {
     return (
       <div className="w-full max-w-sm">
-        <Card className="shadow-xl border-border/60 bg-card/80 backdrop-blur-sm text-center">
-          <CardContent className="pt-8 pb-7 flex flex-col items-center gap-3">
+        <Card className="text-center shadow-xl border-border/60 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex flex-col items-center gap-3 pt-8 pb-7">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30">
               <CheckCircle2 className="size-6 text-emerald-400" />
             </div>
@@ -318,7 +326,7 @@ export function RegisterForm() {
             </div>
 
             {/* Role badge — read-only, always patient */}
-            <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+            <div className="flex items-center gap-2 px-3 py-2 border rounded-lg border-border/50 bg-muted/30">
               <span className="text-xs text-muted-foreground">
                 Registering as
               </span>

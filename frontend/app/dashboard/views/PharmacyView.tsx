@@ -45,7 +45,7 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
     const { data } = await supabase
       .from("prescriptions")
       .select(
-        "id, quantity, notes, status, catalog_medicines(name, unit, price), tickets(id, fo_note, doctor_note, profiles(name, nik))",
+        "id, quantity, notes, status, catalog_medicines(name, price), tickets(id, fo_note, doctor_note, profiles!patient_id(name, nik))",
       )
       .eq("status", "pending")
       .order("id", { ascending: true });
@@ -165,7 +165,7 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/30">
-                  {["Medicine", "Unit", "Price", "Stock", "Status"].map((h) => (
+                  {["Medicine", "Price", "Stock", "Status"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground"
@@ -184,9 +184,6 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                       className="transition-colors border-b border-border/30 last:border-0 hover:bg-muted/20"
                     >
                       <td className="px-4 py-3 font-medium">{med.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {med.unit}
-                      </td>
                       <td className="px-4 py-3">{formatCurrency(med.price)}</td>
                       <td className="px-4 py-3 font-mono">{med.stock}</td>
                       <td className="px-4 py-3">
@@ -292,7 +289,7 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                           {item.catalog_medicines?.name ?? "Unknown medicine"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {item.quantity} {item.catalog_medicines?.unit}
+                          {item.quantity} pcs
                           {item.notes && ` · ${item.notes}`}
                         </p>
                       </div>

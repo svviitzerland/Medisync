@@ -18,6 +18,7 @@ import {
   Activity,
   CreditCard,
   MessageCircle,
+  ClipboardCheck,
   LogOut,
   Menu,
   X,
@@ -58,9 +59,11 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
   ],
   patient: [
     { label: "Medical Status", icon: Activity, tab: null },
+    { label: "Pre-Assessment", icon: ClipboardCheck, tab: "pre-assessment" },
     { label: "Billing History", icon: CreditCard, tab: "billing" },
     { label: "Ask AI", icon: MessageCircle, tab: "chat" },
   ],
+  agent: [{ label: "Overview", icon: LayoutDashboard, tab: null }],
 };
 
 const roleLabels: Record<UserRole, string> = {
@@ -70,6 +73,7 @@ const roleLabels: Record<UserRole, string> = {
   nurse: "Nurse",
   pharmacist: "Pharmacist",
   patient: "Patient",
+  agent: "AI Agent",
 };
 
 const roleColors: Record<UserRole, string> = {
@@ -79,6 +83,7 @@ const roleColors: Record<UserRole, string> = {
   nurse: "text-emerald-400",
   pharmacist: "text-amber-400",
   patient: "text-teal-400",
+  agent: "text-indigo-400",
 };
 
 // ------- Main Shell -------

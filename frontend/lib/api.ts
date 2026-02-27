@@ -33,9 +33,11 @@ async function parseResponse<T>(res: Response): Promise<T> {
 }
 
 async function getAuthHeader(): Promise<Record<string, string>> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (session?.access_token) {
-    return { "Authorization": `Bearer ${session.access_token}` };
+    return { Authorization: `Bearer ${session.access_token}` };
   }
   return {};
 }
@@ -46,7 +48,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader
+      ...authHeader,
     },
     body: JSON.stringify(body),
   }).then((res) => parseResponse<T>(res));
@@ -55,7 +57,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 async function get<T>(path: string): Promise<T> {
   const authHeader = await getAuthHeader();
   return fetch(`${BACKEND_URL}${path}`, {
-    headers: { ...authHeader }
+    headers: { ...authHeader },
   }).then((res) => parseResponse<T>(res));
 }
 
@@ -63,7 +65,7 @@ async function get<T>(path: string): Promise<T> {
 
 export interface AnalyzeTicketResponse {
   status: "success" | "error";
-  analysis: AIAnalysis;
+  analysis?: AIAnalysis;
   message?: string;
 }
 
@@ -78,8 +80,18 @@ export function analyzeTicket(
   });
 }
 
+export interface AISuggestion {
+  diagnosis: string;
+  treatment_plan: string;
+  medicines: Array<{ name: string; quantity: number; notes: string }>;
+  requires_inpatient: boolean;
+  reasoning: string;
+}
+
 export interface DoctorAssistResponse {
-  suggestion?: string;
+  status?: "success" | "error";
+  suggestion?: AISuggestion;
+  message?: string;
 }
 
 /** POST /api/ai/doctor-assist */
@@ -94,7 +106,10 @@ export function doctorAssist(
 }
 
 export interface PatientChatResponse {
+  status?: "success" | "error";
   reply?: string;
+  has_context?: boolean;
+  ticket_id?: string;
   message?: string;
 }
 
@@ -118,7 +133,17 @@ export interface CreateTicketPayload {
 }
 
 export interface CreateTicketResponse {
-  ticket?: { id: number };
+  status?: "success" | "error";
+  ticket?: {
+    id: string; // UUID
+    patient_id?: string;
+    fo_note?: string;
+    doctor_id?: string;
+    status?: string;
+    severity_level?: string;
+    ai_reasoning?: string;
+    created_at?: string;
+  };
   assigned_nurse_team?: string;
   detail?: string;
 }
@@ -138,7 +163,7 @@ export interface CompleteCheckupPayload {
 
 /** POST /api/tickets/{ticket_id}/complete-checkup */
 export function completeCheckup(
-  ticketId: number,
+  ticketId: string,
   payload: CompleteCheckupPayload,
 ): Promise<unknown> {
   return post(`/api/tickets/${ticketId}/complete-checkup`, payload);
@@ -166,3 +191,62 @@ export function registerPatient(
 }
 
 // ─── Admin Endpoints ─────────────────────────────────────────────────────────
+
+/** GET /api/admin/stats — normalises API response `{patients, doctors, tickets, revenue}` to `AdminStats` */
+export async function getAdminStats(): Promise<AdminStats> {
+  const raw = await get<{
+    patients: number;
+    doctors: number;
+    tickets: number;
+    revenue: number;
+  }>("/api/admin/stats");
+  return {
+    totalPatients: raw.patients,
+    totalDoctors: raw.doctors,
+    totalTickets: raw.tickets,
+    totalRevenue: raw.revenue,
+  };
+}
+
+// ─── Pre-Assessment Endpoints ─────────────────────────────────────────────────
+
+export interface GenerateQuestionsResponse {
+  status: "success" | "error";
+  questions: string[];
+}
+
+/** POST /api/ai/generate-pre-assessment-questions */
+export function generatePreAssessmentQuestions(
+  complaint: string,
+): Promise<GenerateQuestionsResponse> {
+  return post("/api/ai/generate-pre-assessment-questions", complaint);
+}
+
+export interface QAHistoryItem {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface SubmitPreAssessmentResponse {
+  status: "success" | "error";
+  ticket_id?: string;
+  assessment_id?: string;
+  detail?: string;
+}
+
+/** POST /api/ai/submit-pre-assessment
+ * Body: raw QA history array — array of `{role, content}` objects.
+ */
+export function submitPreAssessment(
+  qaHistory: QAHistoryItem[],
+): Promise<SubmitPreAssessmentResponse> {
+  return post("/api/ai/submit-pre-assessment", qaHistory);
+}
+
+/** POST /api/tickets/{ticket_id}/assign-doctor */
+export function assignDoctor(
+  ticketId: string,
+  doctorId: string,
+): Promise<unknown> {
+  return post(`/api/tickets/${ticketId}/assign-doctor`, doctorId);
+}
