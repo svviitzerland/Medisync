@@ -106,7 +106,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
     try {
       const data = await analyzeTicket(foNote, patientInfo?.id ?? null);
-      if (data.status === "ok") {
+      if (data.status === "success") {
         setAnalysis(data.analysis);
       } else {
         setAnalysisError(data.message ?? "AI analysis failed");
@@ -209,12 +209,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="max-w-5xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Queue & Registration</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             Register patients and create examination tickets
           </p>
         </div>
@@ -233,10 +233,10 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
       {/* Registration Form */}
       {showForm && (
-        <div className="rounded-xl border border-border/50 bg-card p-5 space-y-5">
+        <div className="p-5 space-y-5 border rounded-xl border-border/50 bg-card">
           {/* Step 1: NIK Search */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
               Step 1 — Patient Lookup
             </h3>
             <div className="flex gap-3">
@@ -308,7 +308,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
           {/* New patient form */}
           {patientInfo?.isNew && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
                 New Patient Details
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -346,7 +346,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
           {/* Step 2: Complaint note + AI Triage */}
           {patientInfo && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
                 Step 2 — Complaint & AI Triage
               </h3>
               <div className="space-y-3">
@@ -385,7 +385,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
               )}
 
               {analysis && (
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="p-4 space-y-3 border rounded-xl border-primary/20 bg-primary/5">
                   <div className="flex items-center gap-2">
                     <Brain className="size-4 text-primary" />
                     <span className="text-sm font-semibold">
@@ -437,8 +437,8 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
           {/* Step 3: Create Ticket */}
           {patientInfo && foNote.trim() && (
-            <div className="space-y-3 pt-1">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="pt-1 space-y-3">
+              <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
                 Step 3 — Create Ticket
               </h3>
 
@@ -494,12 +494,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl border border-border/30 bg-card"
+                className="h-16 border animate-pulse rounded-xl border-border/30 bg-card"
               />
             ))}
           </div>
         ) : tickets.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-xl border border-border/30 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center h-32 text-sm border rounded-xl border-border/30 text-muted-foreground">
             No tickets yet
           </div>
         ) : (
@@ -507,7 +507,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
             {tickets.map((ticket) => (
               <div
                 key={ticket.id}
-                className="flex items-center gap-4 rounded-xl border border-border/40 bg-card px-4 py-3 hover:bg-muted/20 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 transition-colors border rounded-xl border-border/40 bg-card hover:bg-muted/20"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">

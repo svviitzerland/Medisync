@@ -45,7 +45,7 @@ function get<T>(path: string): Promise<T> {
 // ─── AI Endpoints ────────────────────────────────────────────────────────────
 
 export interface AnalyzeTicketResponse {
-  status: "ok" | "error";
+  status: "success" | "error";
   analysis: AIAnalysis;
   message?: string;
 }
