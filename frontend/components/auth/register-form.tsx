@@ -83,6 +83,7 @@ export function RegisterForm() {
 
     try {
       // 1. Sign up with Supabase Auth — role is always patient
+      // The database trigger will automatically create the profile using this metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email.trim(),
         password: form.password,

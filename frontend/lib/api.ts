@@ -5,7 +5,7 @@
  */
 
 import { BACKEND_URL } from "@/lib/config";
-import type { AIAnalysis, AdminStats } from "@/types";
+import type { AIAnalysis } from "@/types";
 
 // ─── Error Type ──────────────────────────────────────────────────────────────
 

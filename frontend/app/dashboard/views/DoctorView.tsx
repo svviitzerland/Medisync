@@ -176,24 +176,6 @@ export default function DoctorView({ userId }: { userId: string }) {
     }
   }
 
-  // ---- SCHEDULE TAB ----
-  if (activeTab === "schedule") {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold">My Schedule</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your upcoming appointments and shifts
-          </p>
-        </div>
-        <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border/50 text-muted-foreground">
-          <Calendar className="size-10 opacity-30" />
-          <p className="text-sm">Schedule view coming soon</p>
-        </div>
-      </div>
-    );
-  }
-
   // ---- PATIENT QUEUE (default) ----
   return (
     <div className="space-y-6 max-w-4xl">
@@ -247,7 +229,7 @@ export default function DoctorView({ userId }: { userId: string }) {
                       className={cn(
                         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                         STATUS_COLORS[ticket.status] ??
-                          "bg-muted text-muted-foreground",
+                        "bg-muted text-muted-foreground",
                       )}
                     >
                       {ticket.status?.replace(/_/g, " ")}
@@ -431,7 +413,7 @@ export default function DoctorView({ userId }: { userId: string }) {
                       className={cn(
                         "inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize",
                         STATUS_COLORS[h.status] ??
-                          "bg-muted text-muted-foreground",
+                        "bg-muted text-muted-foreground",
                       )}
                     >
                       {h.status?.replace(/_/g, " ")}

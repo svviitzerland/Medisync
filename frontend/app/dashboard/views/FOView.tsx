@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
@@ -29,6 +30,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AIAnalysis } from "@/types";
 
+import { useSearchParams } from "next/navigation";
+
 interface PatientInfo {
   id: string | null;
   name: string;
@@ -44,6 +47,8 @@ interface TicketRecord {
 }
 
 export default function FOView({ userId: _userId }: { userId: string }) {
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab");
   // NIK Search
   const [nikSearch, setNikSearch] = React.useState("");
   const [patientInfo, setPatientInfo] = React.useState<PatientInfo | null>(
@@ -208,6 +213,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
     setLoadingTickets(false);
   }
 
+  // ---- Queue & Registration ----
   return (
     <div className="max-w-5xl space-y-6">
       {/* Header */}
@@ -400,7 +406,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                           className={cn(
                             "inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
                             SEVERITY_COLORS[analysis.severity_level] ??
-                              "bg-muted text-muted-foreground border-border",
+                            "bg-muted text-muted-foreground border-border",
                           )}
                         >
                           {analysis.severity_level}
@@ -522,7 +528,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                     className={cn(
                       "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                       STATUS_COLORS[ticket.status] ??
-                        "bg-muted text-muted-foreground",
+                      "bg-muted text-muted-foreground",
                     )}
                   >
                     {ticket.status?.replace(/_/g, " ")}
