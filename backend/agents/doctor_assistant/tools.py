@@ -1,0 +1,166 @@
+import json
+
+from strands import tool
+
+from database import supabase
+
+
+@tool
+def get_patient_info(nik: str) -> str:
+    """Fetches patient profile information by their NIK (National ID Number).
+
+    Args:
+        nik: The patient's NIK (National ID Number).
+
+    Returns:
+        JSON string with patient profile data (id, name, age, nik, gender).
+    """
+    try:
+        res = (
+            supabase.table("profiles")
+            .select("id, name, age, nik, phone, email")
+            .eq("nik", nik)
+            .single()
+            .execute()
+        )
+        return json.dumps(res.data, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": f"Patient not found with NIK {nik}: {str(e)}"})
+
+
+@tool
+def get_patient_ticket_history(patient_id: str) -> str:
+    """Fetches the patient's past medical ticket history including previous diagnoses and treatments.
+
+    Args:
+        patient_id: UUID of the patient.
+
+    Returns:
+        JSON string with list of past tickets (complaint, diagnosis, status, date).
+    """
+    try:
+        res = (
+            supabase.table("tickets")
+            .select(
+                "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at, "
+                "doctor:doctors(specialization, profile:profiles(name))"
+            )
+            .eq("patient_id", patient_id)
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+        )
+        history = []
+        for ticket in res.data or []:
+            doc_name = "N/A"
+            doc_spec = "N/A"
+            if ticket.get("doctor"):
+                doc_spec = ticket["doctor"].get("specialization", "N/A")
+                if ticket["doctor"].get("profile"):
+                    doc_name = ticket["doctor"]["profile"].get("name", "N/A")
+
+            history.append(
+                {
+                    "ticket_id": ticket["id"],
+                    "complaint": ticket.get("fo_note", ""),
+                    "doctor_diagnosis": ticket.get("doctor_note", ""),
+                    "doctor_name": doc_name,
+                    "specialization": doc_spec,
+                    "status": ticket["status"],
+                    "severity": ticket.get("severity_level", ""),
+                    "date": ticket.get("created_at", ""),
+                }
+            )
+
+        if not history:
+            return json.dumps({"message": "No medical history found (new patient)."})
+
+        return json.dumps(history, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+def get_current_ticket(patient_id: str) -> str:
+    """Fetches the patient's current active ticket (the one the doctor is examining right now).
+    This includes the FO note (complaint), severity, and AI triage reasoning.
+
+    Args:
+        patient_id: UUID of the patient.
+
+    Returns:
+        JSON string with the current ticket data.
+    """
+    try:
+        res = (
+            supabase.table("tickets")
+            .select(
+                "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at"
+            )
+            .eq("patient_id", patient_id)
+            .in_("status", ["assigned_doctor", "in_progress"])
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        if res.data:
+            return json.dumps(res.data[0], ensure_ascii=False)
+        return json.dumps({"message": "No active ticket found for this patient."})
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+def get_medicine_catalog() -> str:
+    """Fetches the list of all medicines available in the hospital pharmacy.
+    Use this to recommend only medicines that are actually in stock.
+
+    Returns:
+        JSON string with list of medicines (id, name, price, stock).
+    """
+    try:
+        res = (
+            supabase.table("catalog_medicines")
+            .select("id, name, price, stock")
+            .gt("stock", 0)
+            .order("name")
+            .execute()
+        )
+        return json.dumps(res.data or [], ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@tool
+def submit_doctor_suggestion(
+    diagnosis: str,
+    treatment_plan: str,
+    medicines: str,
+    requires_inpatient: bool,
+    reasoning: str,
+) -> str:
+    """Submits the final doctor suggestion after analyzing all patient data.
+    MUST be called as the final step.
+
+    Args:
+        diagnosis: The suggested diagnosis based on symptoms and history.
+        treatment_plan: Recommended treatment plan for the doctor to consider.
+        medicines: JSON string of recommended medicines. Each item should have: medicine_id (int), medicine_name (str), quantity (int), notes (str with dosage instructions).
+        requires_inpatient: Whether inpatient care is recommended.
+        reasoning: Detailed reasoning explaining the suggestion.
+
+    Returns:
+        Confirmation that the suggestion has been recorded.
+    """
+    suggestion = {
+        "diagnosis": diagnosis,
+        "treatment_plan": treatment_plan,
+        "medicines": medicines,
+        "requires_inpatient": requires_inpatient,
+        "reasoning": reasoning,
+    }
+    return json.dumps(
+        {"status": "suggestion_recorded", "suggestion": suggestion},
+        ensure_ascii=False,
+    )
