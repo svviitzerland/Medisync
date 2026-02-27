@@ -9,7 +9,7 @@ export type TicketStatus =
   | "completed"
   | "operation";
 
-export type SeverityLevel = "low" | "medium" | "high" | "critical";
+export type SeverityLevel = "low" | "medium" | "moderate" | "high" | "critical";
 
 // ─── Profiles ────────────────────────────────────────────────────────────────
 

@@ -33,9 +33,11 @@ async function parseResponse<T>(res: Response): Promise<T> {
 }
 
 async function getAuthHeader(): Promise<Record<string, string>> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (session?.access_token) {
-    return { "Authorization": `Bearer ${session.access_token}` };
+    return { Authorization: `Bearer ${session.access_token}` };
   }
   return {};
 }
@@ -46,7 +48,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader
+      ...authHeader,
     },
     body: JSON.stringify(body),
   }).then((res) => parseResponse<T>(res));
@@ -55,7 +57,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 async function get<T>(path: string): Promise<T> {
   const authHeader = await getAuthHeader();
   return fetch(`${BACKEND_URL}${path}`, {
-    headers: { ...authHeader }
+    headers: { ...authHeader },
   }).then((res) => parseResponse<T>(res));
 }
 
@@ -225,13 +227,6 @@ export interface QAHistoryItem {
   content: string;
 }
 
-export interface SubmitPreAssessmentPayload {
-  patient_id: string;
-  qa_history: QAHistoryItem[];
-  ai_summary: string;
-  suggested_doctor_id?: string;
-}
-
 export interface SubmitPreAssessmentResponse {
   status: "success" | "error";
   ticket_id?: string;
@@ -239,11 +234,13 @@ export interface SubmitPreAssessmentResponse {
   detail?: string;
 }
 
-/** POST /api/ai/submit-pre-assessment */
+/** POST /api/ai/submit-pre-assessment
+ * Body: raw QA history array — array of `{role, content}` objects.
+ */
 export function submitPreAssessment(
-  payload: SubmitPreAssessmentPayload,
+  qaHistory: QAHistoryItem[],
 ): Promise<SubmitPreAssessmentResponse> {
-  return post("/api/ai/submit-pre-assessment", payload);
+  return post("/api/ai/submit-pre-assessment", qaHistory);
 }
 
 /** POST /api/tickets/{ticket_id}/assign-doctor */
