@@ -62,7 +62,7 @@ type DevAccountSwitcherProps = {
 };
 
 export function DevAccountSwitcher({ onFill }: DevAccountSwitcherProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
   const [activeRole, setActiveRole] = React.useState<string | null>(null);
 
   function handleSelect(role: Role) {
