@@ -1,18 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowRightIcon,
-  ShieldCheckIcon,
-  ZapIcon,
-  UsersIcon,
-} from "lucide-react";
-
-const trustBadges = [
-  { icon: ShieldCheckIcon, label: "HIPAA Compliant" },
-  { icon: ZapIcon, label: "99.9% Uptime" },
-  { icon: UsersIcon, label: "10k+ Patients" },
-];
+import { ArrowRightIcon } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -46,7 +35,7 @@ export function HeroSection() {
               className="rounded-full px-4 py-1.5 text-xs font-medium gap-1.5"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
-              Introducing AI-Powered Health Sync
+              Multi-Role Healthcare Platform
               <ArrowRightIcon className="w-3 h-3" />
             </Badge>
           </div>
@@ -62,16 +51,18 @@ export function HeroSection() {
 
           {/* Subtext */}
           <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Medisync unifies your medical records across all providers, delivers
-            AI-driven health insights, and keeps your entire care team in sync -
-            so you can focus on what matters most: your wellbeing.
+            Medisync connects patients with their full care team — front office,
+            doctors, nurses, and pharmacists — through an AI-powered ticket and
+            triage system. Patients can open a ticket themselves or have front
+            office staff create one on arrival, so every visit runs smoothly
+            from check-in to prescription.
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col items-center justify-center gap-4 mt-10 sm:flex-row">
             <Button size="lg" className="w-full gap-2 px-8 sm:w-auto" asChild>
-              <Link href="#get-started">
-                Get Started Free
+              <Link href="/register">
+                Sign Up Free
                 <ArrowRightIcon className="w-4 h-4" />
               </Link>
             </Button>
@@ -83,19 +74,6 @@ export function HeroSection() {
             >
               <Link href="#how-it-works">See How It Works</Link>
             </Button>
-          </div>
-
-          {/* Trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-12">
-            {trustBadges.map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <Icon className="w-4 h-4 text-primary" strokeWidth={2} />
-                <span>{label}</span>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -125,20 +103,20 @@ export function HeroSection() {
                 {/* Stats cards */}
                 {[
                   {
-                    label: "Health Score",
-                    value: "94",
-                    unit: "/100",
+                    label: "Ticket Status",
+                    value: "In Progress",
+                    unit: "",
                     color: "text-primary",
                   },
                   {
-                    label: "Active Providers",
-                    value: "3",
-                    unit: " synced",
+                    label: "Assigned Doctor",
+                    value: "Dr. Andi",
+                    unit: "",
                     color: "text-green-500",
                   },
                   {
-                    label: "Next Appointment",
-                    value: "Feb 28",
+                    label: "Care Role",
+                    value: "Patient",
                     unit: "",
                     color: "text-foreground",
                   },
@@ -167,19 +145,19 @@ export function HeroSection() {
                   <div className="space-y-3">
                     {[
                       {
-                        text: "Blood test results synced from Lab Core",
+                        text: "Ticket #1042 opened by patient (self-service)",
                         time: "2m ago",
                         dot: "bg-primary",
                       },
                       {
-                        text: "Prescription updated by Dr. Wirawan",
-                        time: "1h ago",
+                        text: "AI assigned ticket to Dr. Andi Prasetyo",
+                        time: "5m ago",
                         dot: "bg-green-500",
                       },
                       {
-                        text: "AI detected elevated glucose trend",
-                        time: "3h ago",
-                        dot: "bg-yellow-500",
+                        text: "Ticket #1041 created by Front Office for walk-in",
+                        time: "18m ago",
+                        dot: "bg-blue-500",
                       },
                     ].map((item) => (
                       <div key={item.text} className="flex items-start gap-3">
@@ -205,8 +183,8 @@ export function HeroSection() {
                     AI Insight
                   </p>
                   <p className="text-sm leading-relaxed text-foreground">
-                    Your cardiovascular indicators are improving. Keep up the
-                    current activity levels.
+                    AI recommends Dr. Andi Prasetyo (Cardiologist) based on
+                    reported symptoms and severity level.
                   </p>
                 </div>
               </div>

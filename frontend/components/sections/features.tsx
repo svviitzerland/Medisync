@@ -1,59 +1,59 @@
 import {
   BrainCircuitIcon,
-  RefreshCwIcon,
-  CalendarCheckIcon,
+  ClipboardListIcon,
+  StethoscopeIcon,
   PillIcon,
-  LockIcon,
-  NetworkIcon,
+  UsersIcon,
+  LayoutDashboardIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const features = [
   {
     icon: BrainCircuitIcon,
-    title: "AI Health Insights",
+    title: "AI-Powered Triage",
     description:
-      "Our AI continuously analyzes your medical data to surface meaningful trends, early warnings, and personalized recommendations tailored to your health profile.",
+      "Our AI analyzes patient-reported symptoms and medical history to determine severity and recommend the most suitable specialist, reducing wait times and improving care outcomes.",
     accent: "text-primary",
     bg: "bg-primary/8",
   },
   {
-    icon: RefreshCwIcon,
-    title: "Seamless Record Sync",
+    icon: ClipboardListIcon,
+    title: "Health Ticket System",
     description:
-      "Instantly synchronize medical records, lab results, prescriptions, and imaging data across all your healthcare providers - always up to date.",
+      "Patients can open a ticket themselves from their dashboard, or front office staff can create one on their behalf at check-in. Every ticket is tracked from intake through doctor consultation, nursing care, and pharmacy fulfillment.",
     accent: "text-blue-500",
     bg: "bg-blue-500/8",
   },
   {
-    icon: CalendarCheckIcon,
-    title: "Smart Appointments",
+    icon: StethoscopeIcon,
+    title: "Doctor & Specialist Matching",
     description:
-      "AI-optimized scheduling that coordinates between your providers, checks your availability, and sends reminders - zero back-and-forth.",
+      "AI automatically assigns the right doctor or specialist to each ticket based on symptom analysis, availability, and specialization — no manual coordination needed.",
     accent: "text-green-500",
     bg: "bg-green-500/8",
   },
   {
     icon: PillIcon,
-    title: "Medication Tracking",
+    title: "Digital Prescription Flow",
     description:
-      "Track all prescriptions, set smart reminders, detect potential drug interactions, and share adherence reports with your care team automatically.",
+      "Doctors issue prescriptions digitally within the platform. Pharmacists receive and process them in real time, eliminating paper workflows and reducing dispensing errors.",
     accent: "text-orange-500",
     bg: "bg-orange-500/8",
   },
   {
-    icon: LockIcon,
-    title: "Secure & Private",
+    icon: UsersIcon,
+    title: "Multi-Role Care Coordination",
     description:
-      "End-to-end encryption and full HIPAA compliance ensure your most sensitive health data is protected at every step - and always under your control.",
+      "Purpose-built dashboards for every role: Patient, Front Office, Doctor, Nurse, Pharmacist, and Admin — each with the right tools and visibility for their part of the care journey.",
     accent: "text-purple-500",
     bg: "bg-purple-500/8",
   },
   {
-    icon: NetworkIcon,
-    title: "Multi-Provider Network",
+    icon: LayoutDashboardIcon,
+    title: "Real-Time Status Tracking",
     description:
-      "Connect with hospitals, clinics, labs, specialists, and pharmacies across Indonesia in one unified platform - no more fragmented care.",
+      "Patients and staff can monitor ticket progress at every stage — from check-in and triage to diagnosis, inpatient care, and prescription pickup — all in one unified view.",
     accent: "text-rose-500",
     bg: "bg-rose-500/8",
   },
@@ -76,12 +76,13 @@ export function FeaturesSection() {
             id="features-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Everything your healthcare needs,{" "}
-            <span className="text-gradient-primary">in one place</span>
+            Everything your care team needs,{" "}
+            <span className="text-gradient-primary">in one platform</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            Medisync brings intelligence and simplicity to healthcare
-            coordination - built for patients, designed for care teams.
+            Medisync brings AI intelligence and role-based workflows together so
+            patients, doctors, nurses, and pharmacists always have the right
+            information at the right time.
           </p>
         </div>
 

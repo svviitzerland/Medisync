@@ -14,6 +14,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import Link from "next/link";
 import { DevAccountSwitcher } from "@/components/auth/dev-account-switcher";
 import { supabase } from "@/lib/supabase";
 
@@ -170,6 +171,16 @@ export function LoginForm() {
 
       {/* Dev account switcher - development only */}
       <DevAccountSwitcher onFill={handleFillAccount} />
+
+      <p className="text-sm text-center text-muted-foreground">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/register"
+          className="text-primary underline-offset-2 hover:underline"
+        >
+          Register as patient
+        </Link>
+      </p>
 
       <p className="text-xs text-center text-muted-foreground">
         Protected by Medisync secure access

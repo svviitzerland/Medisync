@@ -4,7 +4,7 @@ import { QuoteIcon } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "Before Medisync, I had to carry physical folders to every specialist. Now my entire history is there when I need it - even my new cardiologist could see my blood work from last year instantly.",
+      "I submitted my own ticket from home before I even arrived at the clinic. By the time I walked in, the doctor already had my symptoms and was ready for me. No forms, no waiting at the front desk.",
     name: "Siti Rahma",
     role: "Patient",
     location: "Jakarta",
@@ -12,25 +12,25 @@ const testimonials = [
   },
   {
     quote:
-      "The AI flagged a pattern in a patient's glucose readings that we might have missed for another few months. That early detection genuinely changed the treatment plan. This tool is remarkable.",
+      "The AI\'s specialist recommendation is remarkably accurate. It surfaces the right doctor for each case before I even open the ticket. My consultations are more focused and my notes are instantly visible to the nurse and pharmacist.",
     name: "Dr. Andi Prasetyo",
-    role: "General Practitioner",
+    role: "Specialist Doctor",
     location: "Surabaya",
     initial: "A",
   },
   {
     quote:
-      "Integrating Medisync into our clinic workflow reduced administrative overhead by nearly 40%. Our staff spends less time chasing records and more time with patients.",
+      "Some patients arrive with a ticket already open from home; others we create one for on the spot. Either way the AI does the triage instantly and the queue moves twice as fast as before.",
     name: "Dewi Kusuma",
-    role: "Clinic Administrator",
+    role: "Front Office Staff",
     location: "Bandung",
     initial: "D",
   },
   {
     quote:
-      "Managing my elderly mother's care across three hospitals used to be an exhausting juggle. Medisync gave us one place to see everything - and the medication reminders are a lifesaver.",
+      "Digital prescriptions mean I receive the exact medication list the moment the doctor finalises the ticket. No illegible handwriting, no back-and-forth calls — just accurate, fast dispensing.",
     name: "Budi Santoso",
-    role: "Family Caregiver",
+    role: "Pharmacist",
     location: "Yogyakarta",
     initial: "B",
   },
@@ -53,11 +53,12 @@ export function TestimonialsSection() {
             id="testimonials-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Trusted by patients and{" "}
-            <span className="text-gradient-primary">care teams alike</span>
+            Trusted by every role in{" "}
+            <span className="text-gradient-primary">the care journey</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            Real stories from the people who use Medisync every day.
+            From front office to pharmacy, here\'s how Medisync fits into real
+            healthcare workflows.
           </p>
         </div>
 

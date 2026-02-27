@@ -5,7 +5,6 @@ import { FeaturesSection } from "@/components/sections/features";
 import { HowItWorksSection } from "@/components/sections/how-it-works";
 import { StatsSection } from "@/components/sections/stats";
 import { TestimonialsSection } from "@/components/sections/testimonials";
-import { CtaSection } from "@/components/sections/cta";
 
 export default function Page() {
   return (
@@ -17,7 +16,6 @@ export default function Page() {
         <HowItWorksSection />
         <StatsSection />
         <TestimonialsSection />
-        <CtaSection />
       </main>
       <Footer />
     </div>
