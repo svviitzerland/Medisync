@@ -85,6 +85,10 @@ export default function DoctorView({ userId }: { userId: string }) {
   const [aiLoading, setAiLoading] = React.useState(false);
   const [aiSuggestion, setAiSuggestion] = React.useState<string | null>(null);
 
+  // Pre-assessment Q&A
+  const [preAssessmentQA, setPreAssessmentQA] = React.useState<{ role: string; content: string }[]>([]);
+  const [showQA, setShowQA] = React.useState(false);
+
   React.useEffect(() => {
     if (!activeTab || activeTab === "patients") fetchMyTickets();
   }, [activeTab, userId]);
@@ -93,6 +97,16 @@ export default function DoctorView({ userId }: { userId: string }) {
   React.useEffect(() => {
     if (selectedTicket) {
       fetchMedicines();
+      // Fetch pre-assessment Q&A
+      supabase
+        .from("ai_pre_assessments")
+        .select("qa_history")
+        .eq("ticket_id", selectedTicket.id)
+        .limit(1)
+        .then(({ data }) => {
+          setPreAssessmentQA(data?.[0]?.qa_history ?? []);
+          setShowQA(false);
+        });
     }
   }, [selectedTicket]);
 
@@ -378,10 +392,43 @@ export default function DoctorView({ userId }: { userId: string }) {
           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
             <div className="rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
               <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider mb-1">
-                FO Notes
+                Patient Complaint
               </p>
               <p>{selectedTicket.fo_note}</p>
             </div>
+
+            {/* Pre-assessment Q&A */}
+            {preAssessmentQA.length > 0 && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowQA(!showQA)}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                >
+                  <ChevronRight className={cn("size-3 transition-transform", showQA && "rotate-90")} />
+                  Pre-Assessment Q&A ({preAssessmentQA.filter(q => q.role === "user").length} answers)
+                </button>
+                {showQA && (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto rounded-lg border border-border/30 p-3">
+                    {preAssessmentQA.map((item, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "rounded-lg px-3 py-2 text-sm",
+                          item.role === "user"
+                            ? "bg-primary/10 ml-6"
+                            : "bg-muted/30 mr-6",
+                        )}
+                      >
+                        <p className="text-[10px] text-muted-foreground mb-0.5">
+                          {item.role === "user" ? "Patient" : "AI"}
+                        </p>
+                        <p>{item.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">

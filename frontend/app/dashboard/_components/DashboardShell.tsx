@@ -58,10 +58,9 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
     { label: "Inventory", icon: Package, tab: "inventory" },
   ],
   patient: [
-    { label: "Medical Status", icon: Activity, tab: null },
-    { label: "Pre-Assessment", icon: ClipboardCheck, tab: "pre-assessment" },
+    { label: "Health Check", icon: ClipboardCheck, tab: null },
+    { label: "Medical History", icon: Activity, tab: "visits" },
     { label: "Billing History", icon: CreditCard, tab: "billing" },
-    { label: "Ask AI", icon: MessageCircle, tab: "chat" },
   ],
   agent: [{ label: "Overview", icon: LayoutDashboard, tab: null }],
 };

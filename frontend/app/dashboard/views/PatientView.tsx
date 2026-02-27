@@ -66,8 +66,14 @@ export default function PatientView({ userId }: { userId: string }) {
     React.useState<SubmitPreAssessmentResponse | null>(null);
   const answerRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // Detail Modal States
+  const [selectedVisit, setSelectedVisit] = React.useState<VisitTicket | null>(null);
+  const [visitPrescriptions, setVisitPrescriptions] = React.useState<VisitPrescription[]>([]);
+  const [visitQA, setVisitQA] = React.useState<QAHistoryItem[]>([]);
+  const [loadingDetail, setLoadingDetail] = React.useState(false);
+
   React.useEffect(() => {
-    if (!activeTab || activeTab === "visits") fetchVisits();
+    if (activeTab === "visits") fetchVisits();
     else if (activeTab === "billing") fetchInvoices();
   }, [activeTab, userId]);
 
@@ -101,6 +107,42 @@ export default function PatientView({ userId }: { userId: string }) {
       .order("issued_at", { ascending: false });
     setInvoices((data as unknown as PatientInvoice[]) ?? []);
     setLoading(false);
+  }
+
+  async function openVisitDetail(visit: VisitTicket) {
+    setSelectedVisit(visit);
+    setLoadingDetail(true);
+    setVisitPrescriptions([]);
+    setVisitQA([]);
+
+    // Fetch prescriptions
+    const { data: rxData } = await supabase
+      .from("prescriptions")
+      .select("id, quantity, notes, status, catalog_medicines(name, price)")
+      .eq("ticket_id", visit.id);
+    if (rxData) {
+      setVisitPrescriptions(
+        rxData.map((r: any) => ({
+          name: r.catalog_medicines?.name ?? "Unknown",
+          price: r.catalog_medicines?.price ?? 0,
+          quantity: r.quantity,
+          notes: r.notes,
+          status: r.status,
+        })),
+      );
+    }
+
+    // Fetch pre-assessment Q&A
+    const { data: qaData } = await supabase
+      .from("ai_pre_assessments")
+      .select("qa_history, ai_summary")
+      .eq("ticket_id", visit.id)
+      .limit(1);
+    if (qaData?.[0]?.qa_history) {
+      setVisitQA(qaData[0].qa_history);
+    }
+
+    setLoadingDetail(false);
   }
 
   function formatDate(d: string) {
@@ -177,7 +219,7 @@ export default function PatientView({ userId }: { userId: string }) {
   }
 
   // ──────────────────────── HEALTH CHECK (Typeform-style) ────────────────────
-  if (activeTab === "pre-assessment") {
+  if (!activeTab || activeTab === "pre-assessment") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] max-w-xl mx-auto px-4">
         {/* Step 1: Initial complaint */}
@@ -514,69 +556,48 @@ export default function PatientView({ userId }: { userId: string }) {
     );
   }
 
-  // ──────────────────────── MEDICAL HISTORY (default) ────────────────────────
-  return (
-    <div className="max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Medical History</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your visit history and medical records
-          </p>
+  if (activeTab === "visits") {
+    return (
+      <div className="max-w-3xl space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Medical History</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your visit history and medical records
+            </p>
+          </div>
+          <button
+            onClick={fetchVisits}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <RefreshCw className="size-3.5" />
+            Refresh
+          </button>
         </div>
-        <button
-          onClick={fetchVisits}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <RefreshCw className="size-3.5" />
-          Refresh
-        </button>
-      </div>
 
-      {loading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-32 border animate-pulse rounded-xl border-border/30 bg-card"
-            />
-          ))}
-        </div>
-      ) : visits.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 gap-3 border rounded-xl border-border/50 text-muted-foreground">
-          <Activity className="size-10 opacity-30" />
-          <p className="text-sm">No visit history found</p>
-        </div>
-      ) : (
-        <div className="relative space-y-4">
-          {/* Timeline line */}
-          <div className="absolute w-px translate-x-px left-5 top-6 bottom-6 bg-border/40" />
-
-          {visits.map((visit, i) => (
-            <div key={visit.id} className="relative flex gap-4">
-              {/* Timeline dot */}
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div
-                className={cn(
-                  "relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full ring-2 ring-background",
-                  STATUS_COLORS[visit.status]?.includes("emerald")
-                    ? "bg-emerald-500/20"
-                    : i === 0
-                      ? "bg-primary/20"
-                      : "bg-muted",
-                )}
+                key={i}
+                className="h-20 border animate-pulse rounded-xl border-border/30 bg-card"
+              />
+            ))}
+          </div>
+        ) : visits.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-3 border rounded-xl border-border/50 text-muted-foreground">
+            <Activity className="size-10 opacity-30" />
+            <p className="text-sm">No visit history found</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {visits.map((visit) => (
+              <button
+                key={visit.id}
+                onClick={() => openVisitDetail(visit)}
+                className="w-full text-left rounded-xl border border-border/40 bg-card p-4 hover:bg-muted/10 transition-colors cursor-pointer"
               >
-                <Stethoscope
-                  className={cn(
-                    "size-4",
-                    i === 0 ? "text-primary" : "text-muted-foreground",
-                  )}
-                />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 p-4 mb-3 space-y-3 border rounded-xl border-border/40 bg-card">
-                {/* Ticket ID + status + timestamp row */}
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-3 mb-1.5">
                   <span className="font-mono text-[10px] text-muted-foreground/60 border border-border/40 rounded px-1.5 py-0.5">
                     #{String(visit.id).slice(0, 8)}
                   </span>
@@ -589,65 +610,168 @@ export default function PatientView({ userId }: { userId: string }) {
                   >
                     {visit.status?.replace(/_/g, " ")}
                   </span>
-                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
                     <Clock className="size-3" />
                     {formatDate(visit.created_at)}
                   </span>
                 </div>
-
-                {/* Assigned doctor */}
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "flex size-7 shrink-0 items-center justify-center rounded-full",
-                      visit.doctor_profiles?.name
-                        ? "bg-sky-400/10"
-                        : "bg-muted",
-                    )}
-                  >
-                    <UserRound
-                      className={cn(
-                        "size-3.5",
-                        visit.doctor_profiles?.name
-                          ? "text-sky-400"
-                          : "text-muted-foreground/40",
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[10px] leading-none text-muted-foreground mb-0.5">
-                      Doctor
-                    </p>
-                    {visit.doctor_profiles?.name ? (
-                      <p className="text-sm font-medium">
-                        {visit.doctor_profiles.name}
-                      </p>
-                    ) : (
-                      <p className="text-xs italic text-muted-foreground/60">
-                        Not assigned yet
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Complaint: </span>
+                <p className="text-sm text-muted-foreground line-clamp-1 mb-1.5 flex-1">
                   {visit.fo_note}
                 </p>
+                <div className="flex items-center justify-between">
+                  {visit.doctor_profiles?.name ? (
+                    <span className="text-xs text-sky-400">
+                      {visit.doctor_profiles.name}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/50 italic">
+                      No doctor assigned
+                    </span>
+                  )}
+                  {visit.doctor_note && (
+                    <span className="text-[10px] text-emerald-400 bg-emerald-400/10 rounded-full px-2 py-0.5 shrink-0">
+                      Diagnosed
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
 
-                {visit.doctor_note && (
-                  <div className="rounded-lg bg-primary/5 border border-primary/15 px-3 py-2.5 text-sm">
-                    <p className="mb-1 text-xs font-medium text-primary">
-                      Doctor&apos;s Diagnosis
+        {/* Visit Detail Modal */}
+        {selectedVisit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSelectedVisit(null)}
+            />
+            <div className="relative z-10 w-full max-w-lg rounded-2xl border border-border/50 bg-card shadow-2xl max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-border/40 px-5 py-4 shrink-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">Visit Detail</h3>
+                  <span
+                    className={cn(
+                      "inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                      STATUS_COLORS[selectedVisit.status] ??
+                      "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {selectedVisit.status?.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedVisit(null)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span className="text-lg">&times;</span>
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4 overflow-y-auto">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {formatDate(selectedVisit.created_at)}
+                  </span>
+                  {selectedVisit.doctor_profiles?.name && (
+                    <span className="text-sky-400 font-medium">
+                      {selectedVisit.doctor_profiles.name}
+                    </span>
+                  )}
+                </div>
+
+                <div className="rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
+                  <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider mb-1">
+                    Complaint
+                  </p>
+                  <p>{selectedVisit.fo_note}</p>
+                </div>
+
+                {selectedVisit.doctor_note && (
+                  <div className="rounded-lg bg-primary/5 border border-primary/15 px-4 py-3 text-sm">
+                    <p className="mb-1 text-xs font-medium text-primary uppercase tracking-wider">
+                      Diagnosis & Treatment
                     </p>
-                    <p>{visit.doctor_note}</p>
+                    <p className="whitespace-pre-wrap">{selectedVisit.doctor_note}</p>
                   </div>
+                )}
+
+                {loadingDetail ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="size-5 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    {visitPrescriptions.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Prescriptions
+                        </p>
+                        <div className="rounded-lg border border-border/40 divide-y divide-border/30">
+                          {visitPrescriptions.map((rx, i) => (
+                            <div key={i} className="flex items-center justify-between px-3 py-2 text-sm">
+                              <div>
+                                <p className="font-medium">{rx.name}</p>
+                                {rx.notes && (
+                                  <p className="text-xs text-muted-foreground">{rx.notes}</p>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0 ml-3">
+                                <p className="text-xs text-muted-foreground">
+                                  {rx.quantity}x @ Rp {rx.price.toLocaleString("id-ID")}
+                                </p>
+                                <p className="font-medium text-xs">
+                                  Rp {(rx.price * rx.quantity).toLocaleString("id-ID")}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {visitQA.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Pre-Assessment Q&A
+                        </p>
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                          {visitQA.map((item, i) => (
+                            <div
+                              key={i}
+                              className={cn(
+                                "rounded-lg px-3 py-2 text-sm",
+                                item.role === "user"
+                                  ? "bg-primary/10 ml-6"
+                                  : "bg-muted/30 mr-6",
+                              )}
+                            >
+                              <p className="text-[10px] text-muted-foreground mb-0.5">
+                                {item.role === "user" ? "You" : "AI"}
+                              </p>
+                              <p>{item.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+interface VisitPrescription {
+  name: string;
+  price: number;
+  quantity: number;
+  notes: string | null;
+  status: string;
 }
