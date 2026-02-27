@@ -44,11 +44,9 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
   ],
   fo: [
     { label: "Queue & Registration", icon: ClipboardList, tab: null },
-    { label: "FO Reports", icon: FileText, tab: "reports" },
   ],
   doctor_specialist: [
     { label: "Patient List", icon: Stethoscope, tab: null },
-    { label: "My Schedule", icon: Calendar, tab: "schedule" },
   ],
   nurse: [
     { label: "Ward Monitor", icon: BedDouble, tab: null },
