@@ -63,7 +63,7 @@ export function HeroSection() {
           {/* Subtext */}
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl max-w-2xl mx-auto">
             Medisync unifies your medical records across all providers, delivers
-            AI-driven health insights, and keeps your entire care team in sync —
+            AI-driven health insights, and keeps your entire care team in sync -
             so you can focus on what matters most: your wellbeing.
           </p>
 

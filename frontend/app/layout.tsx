@@ -9,7 +9,7 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Medisync — AI-Powered Healthcare Synchronization",
+  title: "Medisync - AI-Powered Healthcare Synchronization",
   description:
     "Medisync connects patients and healthcare providers through intelligent record synchronization, AI-driven health insights, and seamless appointment management.",
   openGraph: {

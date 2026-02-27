@@ -4,7 +4,7 @@ import { QuoteIcon } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "Before Medisync, I had to carry physical folders to every specialist. Now my entire history is there when I need it — even my new cardiologist could see my blood work from last year instantly.",
+      "Before Medisync, I had to carry physical folders to every specialist. Now my entire history is there when I need it - even my new cardiologist could see my blood work from last year instantly.",
     name: "Siti Rahma",
     role: "Patient",
     location: "Jakarta",
@@ -28,7 +28,7 @@ const testimonials = [
   },
   {
     quote:
-      "Managing my elderly mother's care across three hospitals used to be an exhausting juggle. Medisync gave us one place to see everything — and the medication reminders are a lifesaver.",
+      "Managing my elderly mother's care across three hospitals used to be an exhausting juggle. Medisync gave us one place to see everything - and the medication reminders are a lifesaver.",
     name: "Budi Santoso",
     role: "Family Caregiver",
     location: "Yogyakarta",
@@ -83,7 +83,7 @@ export function TestimonialsSection() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{t.name}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {t.role} · {t.location}
+                      {t.role} - {t.location}
                     </p>
                   </div>
                 </div>

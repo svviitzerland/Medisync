@@ -14,7 +14,7 @@ const steps = [
     icon: RefreshCcwDotIcon,
     title: "Sync Your Records",
     description:
-      "Medisync automatically pulls and harmonizes data from hospitals, labs, clinics, and pharmacies — keeping everything current without any manual effort.",
+      "Medisync automatically pulls and harmonizes data from hospitals, labs, clinics, and pharmacies - keeping everything current without any manual effort.",
   },
   {
     number: "03",
@@ -47,7 +47,7 @@ export function HowItWorksSection() {
           </h2>
           <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
             Getting started with Medisync is simple. No complex setup, no
-            integration headaches — just seamless healthcare from day one.
+            integration headaches - just seamless healthcare from day one.
           </p>
         </div>
 

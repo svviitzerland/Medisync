@@ -59,7 +59,7 @@ export function CtaSection() {
           </div>
 
           <p className="mt-6 text-xs text-white/60">
-            No credit card required · Free forever plan available · Cancel
+            No credit card required - Free forever plan available - Cancel
             anytime
           </p>
         </div>

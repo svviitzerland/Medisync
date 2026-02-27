@@ -57,7 +57,7 @@ export function Navbar() {
             </Button>
           </div>
 
-          {/* Mobile Menu Button (visual only — enhance with client component if needed) */}
+          {/* Mobile Menu Button (visual only - enhance with client component if needed) */}
           <button
             className="flex md:hidden items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-accent"
             aria-label="Open menu"

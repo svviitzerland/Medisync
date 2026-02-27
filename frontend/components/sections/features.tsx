@@ -21,7 +21,7 @@ const features = [
     icon: RefreshCwIcon,
     title: "Seamless Record Sync",
     description:
-      "Instantly synchronize medical records, lab results, prescriptions, and imaging data across all your healthcare providers — always up to date.",
+      "Instantly synchronize medical records, lab results, prescriptions, and imaging data across all your healthcare providers - always up to date.",
     accent: "text-blue-500",
     bg: "bg-blue-500/8",
   },
@@ -29,7 +29,7 @@ const features = [
     icon: CalendarCheckIcon,
     title: "Smart Appointments",
     description:
-      "AI-optimized scheduling that coordinates between your providers, checks your availability, and sends reminders — zero back-and-forth.",
+      "AI-optimized scheduling that coordinates between your providers, checks your availability, and sends reminders - zero back-and-forth.",
     accent: "text-green-500",
     bg: "bg-green-500/8",
   },
@@ -45,7 +45,7 @@ const features = [
     icon: LockIcon,
     title: "Secure & Private",
     description:
-      "End-to-end encryption and full HIPAA compliance ensure your most sensitive health data is protected at every step — and always under your control.",
+      "End-to-end encryption and full HIPAA compliance ensure your most sensitive health data is protected at every step - and always under your control.",
     accent: "text-purple-500",
     bg: "bg-purple-500/8",
   },
@@ -53,7 +53,7 @@ const features = [
     icon: NetworkIcon,
     title: "Multi-Provider Network",
     description:
-      "Connect with hospitals, clinics, labs, specialists, and pharmacies across Indonesia in one unified platform — no more fragmented care.",
+      "Connect with hospitals, clinics, labs, specialists, and pharmacies across Indonesia in one unified platform - no more fragmented care.",
     accent: "text-rose-500",
     bg: "bg-rose-500/8",
   },
@@ -81,7 +81,7 @@ export function FeaturesSection() {
           </h2>
           <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
             Medisync brings intelligence and simplicity to healthcare
-            coordination — built for patients, designed for care teams.
+            coordination - built for patients, designed for care teams.
           </p>
         </div>
 
