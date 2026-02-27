@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +15,15 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { DevAccountSwitcher } from "@/components/auth/dev-account-switcher";
+import { supabase } from "@/lib/supabase";
 
 export function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   function handleFillAccount(accountEmail: string, accountPassword: string) {
     setEmail(accountEmail);
@@ -29,9 +33,22 @@ export function LoginForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: implement actual auth logic
-    await new Promise((r) => setTimeout(r, 1200));
-    setIsLoading(false);
+    setError(null);
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (authError) {
+        setError(authError.message);
+      } else {
+        router.push("/dashboard");
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -101,6 +118,14 @@ export function LoginForm() {
                 </button>
               </div>
             </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+                <AlertCircle className="size-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             {/* Submit */}
             <Button

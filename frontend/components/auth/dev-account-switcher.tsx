@@ -15,43 +15,64 @@ type Role = {
 const DEV_ACCOUNTS: Role[] = [
   {
     label: "Admin",
-    email: "admin@medisync.id",
-    password: "admin123",
+    email: "admin@rs-sehat.com",
+    password: "password123",
     color:
       "bg-rose-500/10 text-rose-400 ring-rose-500/20 hover:bg-rose-500/20 hover:text-rose-300",
   },
   {
     label: "Front Office",
-    email: "fo@medisync.id",
-    password: "fo123",
+    email: "fo1@rs-sehat.com",
+    password: "password123",
     color:
       "bg-violet-500/10 text-violet-400 ring-violet-500/20 hover:bg-violet-500/20 hover:text-violet-300",
   },
   {
-    label: "Doctor",
-    email: "doctor@medisync.id",
-    password: "doctor123",
+    label: "Dr. House (Diagnostics)",
+    email: "house.diagnostics@medisync.local",
+    password: "password123",
+    color:
+      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
+  },
+  {
+    label: "Dr. Shepherd (Neurology)",
+    email: "derek.neuro@medisync.local",
+    password: "password123",
+    color:
+      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
+  },
+  {
+    label: "Dr. Robbins (Pediatrics)",
+    email: "arizona.peds@medisync.local",
+    password: "password123",
+    color:
+      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
+  },
+  {
+    label: "Dr. Montgomery (Ob/Gyn)",
+    email: "addison.obgyn@medisync.local",
+    password: "password123",
     color:
       "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
   },
   {
     label: "Pharmacist",
-    email: "pharmacist@medisync.id",
-    password: "pharmacist123",
+    email: "apotek@rs-sehat.com",
+    password: "password123",
     color:
       "bg-amber-500/10 text-amber-400 ring-amber-500/20 hover:bg-amber-500/20 hover:text-amber-300",
   },
   {
-    label: "Nurse",
-    email: "nurse@medisync.id",
-    password: "nurse123",
+    label: "Nurse (Alpha Morning)",
+    email: "nurse.alpha.morning.0@medisync.local",
+    password: "password123",
     color:
       "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300",
   },
   {
-    label: "Patient",
-    email: "patient@medisync.id",
-    password: "patient123",
+    label: "Patient (John Smith)",
+    email: "patient2@example.com",
+    password: "password123",
     color:
       "bg-teal-500/10 text-teal-400 ring-teal-500/20 hover:bg-teal-500/20 hover:text-teal-300",
   },
