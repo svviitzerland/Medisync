@@ -4,7 +4,32 @@ from database import supabase
 router = APIRouter()
 
 
-@router.get("/stats")
+@router.get(
+    "/stats",
+    responses={
+        200: {
+            "description": "Hospital statistics summary",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "patients": 128,
+                        "doctors": 12,
+                        "tickets": 345,
+                        "revenue": 15750000,
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Error fetching stats",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Database connection error"}
+                }
+            },
+        },
+    },
+)
 async def get_admin_stats():
     """
     Fetch hospital data summary for the Admin Dashboard

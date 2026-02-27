@@ -4,14 +4,47 @@ from database import supabase
 router = APIRouter()
 
 
-@router.post("/create")
+@router.post(
+    "/create",
+    responses={
+        200: {
+            "description": "Ticket created successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "ticket": {
+                            "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+                            "patient_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "fo_note": "Patient presents with high fever and productive cough for 5 days",
+                            "doctor_id": "d1e2f3a4-b5c6-7890-abcd-ef1234567890",
+                            "status": "assigned_doctor",
+                            "severity_level": "moderate",
+                            "ai_reasoning": "Symptoms indicate respiratory tract infection",
+                            "created_at": "2026-02-28T01:00:00+07:00",
+                        },
+                        "assigned_nurse_team": None,
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Ticket creation failed",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid patient_id: UUID not found"}
+                }
+            },
+        },
+    },
+)
 async def create_ticket(
-    patient_id: str = Body(...),
-    fo_note: str = Body(""),
-    doctor_id: str = Body(None),
-    requires_inpatient: bool = Body(False),
-    severity_level: str = Body(None),
-    ai_reasoning: str = Body(None),
+    patient_id: str = Body(..., examples=["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]),
+    fo_note: str = Body("", examples=["Patient presents with high fever and productive cough for 5 days"]),
+    doctor_id: str = Body(None, examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"]),
+    requires_inpatient: bool = Body(False, examples=[False]),
+    severity_level: str = Body(None, examples=["moderate"]),
+    ai_reasoning: str = Body(None, examples=["Symptoms indicate respiratory tract infection, requires pulmonologist examination"]),
 ):
     """
     FO creates a new ticket for the patient with auto-assigned Doctor and Nurse (If Inpatient).
@@ -68,8 +101,35 @@ async def create_ticket(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{ticket_id}/assign-doctor")
-async def assign_doctor(ticket_id: int, doctor_id: str = Body(...)):
+@router.post(
+    "/{ticket_id}/assign-doctor",
+    responses={
+        200: {
+            "description": "Doctor assigned successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "ticket": {
+                            "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+                            "doctor_id": "d1e2f3a4-b5c6-7890-abcd-ef1234567890",
+                            "status": "assigned_doctor",
+                        },
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Assignment failed",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Ticket not found"}
+                }
+            },
+        },
+    },
+)
+async def assign_doctor(ticket_id: int, doctor_id: str = Body(..., examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"])):
     """
     Place the patient in the doctor's queue (changes ticket status to in_progress)
     """
@@ -85,12 +145,39 @@ async def assign_doctor(ticket_id: int, doctor_id: str = Body(...)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{ticket_id}/complete-checkup")
+@router.post(
+    "/{ticket_id}/complete-checkup",
+    responses={
+        200: {
+            "description": "Checkup completed successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "ticket": {
+                            "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+                            "doctor_note": "Patient diagnosed with Upper Respiratory Tract Infection (URTI). Prescribed amoxicillin 500mg 3x daily and paracetamol 500mg as needed for fever.",
+                            "status": "waiting_pharmacy",
+                        },
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Checkup completion failed",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Ticket not found"}
+                }
+            },
+        },
+    },
+)
 async def complete_checkup(
     ticket_id: int,
-    doctor_note: str = Body(...),
-    require_pharmacy: bool = Body(False),
-    requires_inpatient: bool = Body(False),
+    doctor_note: str = Body(..., examples=["Patient diagnosed with Upper Respiratory Tract Infection (URTI). Prescribed amoxicillin 500mg 3x daily and paracetamol 500mg as needed for fever."]),
+    require_pharmacy: bool = Body(False, examples=[True]),
+    requires_inpatient: bool = Body(False, examples=[False]),
 ):
     """
     Doctor finishes examination.

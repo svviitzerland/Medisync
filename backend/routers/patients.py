@@ -4,12 +4,40 @@ from database import supabase
 router = APIRouter()
 
 
-@router.post("/register")
+@router.post(
+    "/register",
+    responses={
+        200: {
+            "description": "Patient registered successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "message": "Patient registered successfully",
+                        "patient": {
+                            "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "nik": "3201012345678901",
+                            "name": "Budi Santoso",
+                        },
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Registration failed",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User with this NIK already exists"}
+                }
+            },
+        },
+    },
+)
 async def register_patient(
-    nik: str = Body(...),
-    name: str = Body(...),
-    age: int = Body(...),
-    phone: str = Body(...),
+    nik: str = Body(..., examples=["3201012345678901"]),
+    name: str = Body(..., examples=["Budi Santoso"]),
+    age: int = Body(..., examples=[35]),
+    phone: str = Body(..., examples=["081234567890"]),
 ):
     """
     Register a new patient from the FO/Admin side.
