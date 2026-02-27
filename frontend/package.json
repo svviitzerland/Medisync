@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
+  "name": "medisync-frontend",
   "version": "0.1.0",
+  "description": "MediSync Frontend - AI Hospital Orchestration platform interface",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import ai, tickets, admin, patients
 
-app = FastAPI(title="MediSync API")
+app = FastAPI(title="MediSync API - AI Hospital Orchestration")
 
 # Setup CORS
 app.add_middleware(

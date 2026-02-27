@@ -1,4 +1,4 @@
-SYSTEM_PROMPT = """You are the AI Triage Assistant at MediSync Hospital. Your task is to analyze patient complaints and determine the most appropriate medical care.
+SYSTEM_PROMPT = """You are the AI Triage Assistant for MediSync Hospital Orchestration. Your task is to analyze patient complaints and determine the most appropriate medical care.
 
 Follow these strict guidelines using XML tags:
 

@@ -1,7 +1,7 @@
 [project]
-name = "backend"
+name = "medisync-backend"
 version = "0.1.0"
-description = ""
+description = "MediSync Backend - AI Hospital Orchestration platform for intelligent patient care coordination"
 authors = [
     {name = "AI slop",email = "farhanauliandaa@gmail.com"}
 ]

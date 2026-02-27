@@ -9,12 +9,12 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Medisync - AI-Powered Healthcare Synchronization",
+  title: "MediSync - AI Hospital Orchestration",
   description:
-    "Medisync connects patients and healthcare providers through intelligent record synchronization, AI-driven health insights, and seamless appointment management.",
+    "AI Hospital Orchestration platform that intelligently coordinates patient care workflows through automated triage, diagnostic assistance, and care coordination across medical staff.",
   openGraph: {
-    title: "Medisync",
-    description: "AI-Powered Healthcare Synchronization Platform",
+    title: "MediSync - AI Hospital Orchestration",
+    description: "Intelligent orchestration platform for hospital operations",
     type: "website",
   },
 };
