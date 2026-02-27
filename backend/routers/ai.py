@@ -1,9 +1,111 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, HTTPException
+from database import supabase
 from agents.triage import analyze_patient
+from agents.triage.questions import generate_pre_assessment_questions
 from agents.doctor_assistant import get_doctor_suggestion
 from agents.patient_chatbot import chat_with_patient
 
 router = APIRouter()
+
+
+@router.post(
+    "/generate-pre-assessment-questions",
+    responses={
+        200: {
+            "description": "Pre-assessment questions generated successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "questions": [
+                            "How long have you been experiencing this headache?",
+                            "On a scale of 1-10, how severe is the pain?",
+                            "Are you experiencing any other symptoms like nausea, sensitivity to light, or fever?"
+                        ],
+                    }
+                }
+            },
+        },
+    },
+)
+async def generate_questions(
+    complaint: str = Body(..., examples=["I have a severe headache that won't go away"]),
+):
+    """
+    Generate follow-up questions for the pre-assessment chat based on the patient's initial complaint.
+    Returns a JSON array of 3-5 strings representing the questions.
+    """
+    result = generate_pre_assessment_questions(complaint)
+    return result
+
+
+@router.post(
+    "/submit-pre-assessment",
+    responses={
+        200: {
+            "description": "Pre-assessment submitted and ticket created",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "success",
+                        "ticket_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+                        "assessment_id": "e5f6a7b8-9012-cdef-1234-567890123456",
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Submission failed",
+            "content": {"application/json": {"example": {"detail": "Error creating ticket"}}},
+        },
+    },
+)
+async def submit_pre_assessment(
+    patient_id: str = Body(..., examples=["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]),
+    qa_history: list = Body(..., examples=[[{"role": "user", "content": "I have a headache"}, {"role": "assistant", "content": "How long?"}]]),
+    ai_summary: str = Body(..., examples=["Patient has had a headache for 2 days. Suspected tension headache."]),
+    suggested_doctor_id: str = Body(None, examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"]),
+):
+    """
+    Submit a pre-consultation AI assessment.
+    This creates a new ticket containing the AI's summary as the FO note,
+    and saves the raw Q&A history to the ai_pre_assessments table for the doctor to review.
+    """
+    try:
+        # 1. Create the Ticket
+        status = "assigned_doctor" if suggested_doctor_id else "draft"
+        ticket_payload = {
+            "patient_id": patient_id,
+            "fo_note": ai_summary,  # The AI summary acts as the initial FO note
+            "status": status,
+            "doctor_id": suggested_doctor_id,
+            "ai_reasoning": "Auto-generated from pre-consultation assessment",
+        }
+        
+        ticket_res, _ = supabase.table("tickets").insert(ticket_payload).execute()
+        if not ticket_res[1]:
+            raise Exception("Failed to create ticket")
+            
+        ticket_id = ticket_res[1][0]["id"]
+
+        # 2. Save the Assessment History
+        assessment_payload = {
+            "ticket_id": ticket_id,
+            "patient_id": patient_id,
+            "qa_history": qa_history,
+            "ai_summary": ai_summary,
+        }
+        
+        assessment_res, _ = supabase.table("ai_pre_assessments").insert(assessment_payload).execute()
+        
+        return {
+            "status": "success",
+            "ticket_id": ticket_id,
+            "assessment_id": assessment_res[1][0]["id"] if assessment_res[1] else None,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 @router.post(
