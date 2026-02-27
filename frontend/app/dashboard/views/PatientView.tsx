@@ -19,6 +19,7 @@ import {
   AlertCircle,
   ChevronRight,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
@@ -41,7 +42,9 @@ interface VisitTicket {
   status: string;
   created_at: string;
   doctor_note: string | null;
-  profiles: { name: string } | null;
+  doctor_id: string | null;
+  // Joined from doctors → profiles via doctor_id FK
+  doctors: { profiles: { name: string } | null } | null;
 }
 
 type PatientInvoice = Omit<InvoiceType, "tickets"> & {
@@ -69,8 +72,6 @@ export default function PatientView({ userId }: { userId: string }) {
     React.useState<SubmitPreAssessmentResponse | null>(null);
 
   // AI Chat state
-  const [chatTickets, setChatTickets] = React.useState<VisitTicket[]>([]);
-  const [chatLoading, setChatLoading] = React.useState(false);
   const [selectedChatTicket, setSelectedChatTicket] =
     React.useState<VisitTicket | null>(null);
   const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>([]);
@@ -79,9 +80,9 @@ export default function PatientView({ userId }: { userId: string }) {
   const chatEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (!activeTab || activeTab === "visits") fetchVisits();
+    if (!activeTab || activeTab === "visits" || activeTab === "chat")
+      fetchVisits();
     else if (activeTab === "billing") fetchInvoices();
-    else if (activeTab === "chat") fetchChatTickets();
     // pre-assessment tab needs no initial fetch
   }, [activeTab, userId]);
 
@@ -94,47 +95,32 @@ export default function PatientView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("tickets")
       .select(
-        "id, fo_note, status, created_at, doctor_note, profiles!doctor_id(name)",
+        "id, fo_note, status, created_at, doctor_note, doctor_id, doctors!doctor_id(profiles(name))",
       )
       .eq("patient_id", userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(50);
     setVisits((data as unknown as VisitTicket[]) ?? []);
     setLoading(false);
   }
 
   async function fetchInvoices() {
     setLoading(true);
+    // tickets!inner enforces a server-side INNER JOIN — only invoices with a
+    // matching ticket row are returned (ticket_id is NOT NULL + ON DELETE CASCADE).
+    // RLS on invoices already scopes results to the patient's own records.
     const { data } = await supabase
       .from("invoices")
       .select(
-        "id, doctor_fee, medicine_fee, room_fee, status, issued_at, tickets(id, fo_note)",
+        "id, doctor_fee, medicine_fee, room_fee, total_amount, status, issued_at, tickets!inner(id, fo_note)",
       )
       .order("issued_at", { ascending: false });
-
-    // Filter client-side to patient's own invoices (Supabase nested filter limitation)
-    const filtered = ((data as unknown as PatientInvoice[]) ?? []).filter(
-      (inv) => inv.tickets !== null,
-    );
-    setInvoices(filtered);
+    setInvoices((data as unknown as PatientInvoice[]) ?? []);
     setLoading(false);
   }
 
   function formatDate(d: string) {
     return formatDateTime(d);
-  }
-
-  async function fetchChatTickets() {
-    setChatLoading(true);
-    const { data } = await supabase
-      .from("tickets")
-      .select(
-        "id, fo_note, status, created_at, doctor_note, profiles!doctor_id(name)",
-      )
-      .eq("patient_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setChatTickets((data as unknown as VisitTicket[]) ?? []);
-    setChatLoading(false);
   }
 
   async function handleSendMessage() {
@@ -472,11 +458,7 @@ export default function PatientView({ userId }: { userId: string }) {
   if (activeTab === "billing") {
     const totalPaid = invoices
       .filter((i) => i.status === "paid")
-      .reduce(
-        (s, i) =>
-          s + (i.doctor_fee ?? 0) + (i.medicine_fee ?? 0) + (i.room_fee ?? 0),
-        0,
-      );
+      .reduce((s, i) => s + (i.total_amount ?? 0), 0);
 
     return (
       <div className="max-w-3xl space-y-6">
@@ -547,10 +529,7 @@ export default function PatientView({ userId }: { userId: string }) {
         ) : (
           <div className="space-y-3">
             {invoices.map((inv) => {
-              const total =
-                (inv.doctor_fee ?? 0) +
-                (inv.medicine_fee ?? 0) +
-                (inv.room_fee ?? 0);
+              const total = inv.total_amount ?? 0;
               return (
                 <div
                   key={inv.id}
@@ -632,7 +611,7 @@ export default function PatientView({ userId }: { userId: string }) {
             <p className="text-sm font-medium text-muted-foreground">
               Select a visit to chat about:
             </p>
-            {chatLoading ? (
+            {loading ? (
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
@@ -641,13 +620,13 @@ export default function PatientView({ userId }: { userId: string }) {
                   />
                 ))}
               </div>
-            ) : chatTickets.length === 0 ? (
+            ) : visits.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 gap-3 border rounded-xl border-border/50 text-muted-foreground">
                 <MessageCircle className="size-10 opacity-30" />
                 <p className="text-sm">No visits available to chat about</p>
               </div>
             ) : (
-              chatTickets.map((ticket) => (
+              visits.map((ticket) => (
                 <button
                   key={ticket.id}
                   className="w-full text-left rounded-xl border border-border/40 bg-card p-4 hover:bg-muted/20 transition-colors space-y-1.5"
@@ -670,9 +649,9 @@ export default function PatientView({ userId }: { userId: string }) {
                       <Clock className="size-3" />
                       {formatDate(ticket.created_at)}
                     </span>
-                    {ticket.profiles?.name && (
+                    {ticket.doctors?.profiles?.name && (
                       <span className="text-xs text-muted-foreground">
-                        Dr. {ticket.profiles.name}
+                        Dr. {ticket.doctors.profiles.name}
                       </span>
                     )}
                   </div>
@@ -882,8 +861,12 @@ export default function PatientView({ userId }: { userId: string }) {
               </div>
 
               {/* Content */}
-              <div className="flex-1 p-4 mb-3 space-y-2 border rounded-xl border-border/40 bg-card">
-                <div className="flex flex-wrap items-center gap-3">
+              <div className="flex-1 p-4 mb-3 space-y-3 border rounded-xl border-border/40 bg-card">
+                {/* Ticket ID + status + timestamp row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground/60 border border-border/40 rounded px-1.5 py-0.5">
+                    #{String(visit.id).slice(0, 8)}
+                  </span>
                   <span
                     className={cn(
                       "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
@@ -897,11 +880,41 @@ export default function PatientView({ userId }: { userId: string }) {
                     <Clock className="size-3" />
                     {formatDate(visit.created_at)}
                   </span>
-                  {visit.profiles?.name && (
-                    <span className="text-xs text-muted-foreground">
-                      Dr. {visit.profiles.name}
-                    </span>
-                  )}
+                </div>
+
+                {/* Assigned doctor */}
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "flex size-7 shrink-0 items-center justify-center rounded-full",
+                      visit.doctors?.profiles?.name
+                        ? "bg-sky-400/10"
+                        : "bg-muted",
+                    )}
+                  >
+                    <UserRound
+                      className={cn(
+                        "size-3.5",
+                        visit.doctors?.profiles?.name
+                          ? "text-sky-400"
+                          : "text-muted-foreground/40",
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] leading-none text-muted-foreground mb-0.5">
+                      Assigned Doctor
+                    </p>
+                    {visit.doctors?.profiles?.name ? (
+                      <p className="text-sm font-medium">
+                        Dr. {visit.doctors.profiles.name}
+                      </p>
+                    ) : (
+                      <p className="text-xs italic text-muted-foreground/60">
+                        Not assigned yet
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-sm">

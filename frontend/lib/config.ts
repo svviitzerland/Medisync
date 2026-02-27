@@ -33,6 +33,7 @@ export const ROLE_LABELS: Record<string, string> = {
   nurse: "Nurse",
   pharmacist: "Pharmacist",
   patient: "Patient",
+  agent: "AI Agent",
 };
 
 export const ROLE_COLORS: Record<string, string> = {
@@ -42,4 +43,5 @@ export const ROLE_COLORS: Record<string, string> = {
   nurse: "bg-emerald-500/15 text-emerald-400",
   pharmacist: "bg-amber-500/15 text-amber-400",
   patient: "bg-teal-500/15 text-teal-400",
+  agent: "bg-indigo-500/15 text-indigo-400",
 };

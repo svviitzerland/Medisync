@@ -90,6 +90,9 @@ export function RegisterForm() {
           data: {
             role: "patient",
             name: form.fullName.trim(),
+            nik: form.nik,
+            phone: form.phone.trim(),
+            age: form.age ? parseInt(form.age) : null,
           },
         },
       });

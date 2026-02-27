@@ -135,7 +135,7 @@ export interface CreateTicketPayload {
 export interface CreateTicketResponse {
   status?: "success" | "error";
   ticket?: {
-    id: number;
+    id: string; // UUID
     patient_id?: string;
     fo_note?: string;
     doctor_id?: string;
@@ -163,7 +163,7 @@ export interface CompleteCheckupPayload {
 
 /** POST /api/tickets/{ticket_id}/complete-checkup */
 export function completeCheckup(
-  ticketId: number,
+  ticketId: string,
   payload: CompleteCheckupPayload,
 ): Promise<unknown> {
   return post(`/api/tickets/${ticketId}/complete-checkup`, payload);
@@ -245,7 +245,7 @@ export function submitPreAssessment(
 
 /** POST /api/tickets/{ticket_id}/assign-doctor */
 export function assignDoctor(
-  ticketId: number,
+  ticketId: string,
   doctorId: string,
 ): Promise<unknown> {
   return post(`/api/tickets/${ticketId}/assign-doctor`, doctorId);

@@ -11,11 +11,17 @@ export type UserRole =
   | "doctor_specialist"
   | "nurse"
   | "pharmacist"
-  | "patient";
+  | "patient"
+  | "agent";
 
 export interface UserProfile {
   id: string;
-  email: string;
-  name: string;
+  nik: string | null;
   role: UserRole;
+  name: string;
+  age: number | null;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
 }

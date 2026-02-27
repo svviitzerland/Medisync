@@ -3,11 +3,10 @@
 export type TicketStatus =
   | "draft"
   | "assigned_doctor"
-  | "in_progress"
-  | "waiting_pharmacy"
   | "inpatient"
-  | "completed"
-  | "operation";
+  | "operation"
+  | "waiting_pharmacy"
+  | "completed";
 
 export type SeverityLevel = "low" | "medium" | "moderate" | "high" | "critical";
 
@@ -29,12 +28,12 @@ export interface DoctorProfile {
 // ─── Tickets ─────────────────────────────────────────────────────────────────
 
 export interface Ticket {
-  id: number;
+  id: string; // UUID
   fo_note: string;
   doctor_note: string | null;
   status: TicketStatus;
   created_at: string;
-  nurse_team_id?: string | null;
+  nurse_team_id?: number | null; // INT references nurse_teams(id)
   profiles?: PatientProfile | null;
   doctors?: DoctorProfile | null;
 }
@@ -83,7 +82,7 @@ export interface Invoice {
   status: "paid" | "unpaid";
   issued_at: string;
   tickets?: {
-    id: string | number;
+    id: string; // UUID
     fo_note: string;
     profiles?: { name: string } | null;
     patient_id?: string;
@@ -93,9 +92,8 @@ export interface Invoice {
 // ─── Pharmacy ────────────────────────────────────────────────────────────────
 
 export interface Medicine {
-  id: string;
+  id: number; // SERIAL primary key
   name: string;
-  unit: string;
   price: number;
   stock: number;
 }
@@ -107,7 +105,6 @@ export interface Prescription {
   status: string;
   catalog_medicines?: {
     name: string;
-    unit: string;
     price: number;
   } | null;
   tickets?: {
@@ -132,7 +129,7 @@ export interface GroupedPrescription {
 export interface WardPatient {
   id: string;
   status: TicketStatus;
-  room_id: string | null;
+  room_id: number | null; // INT references rooms(id)
   created_at: string;
   profiles?: { name: string; age: number } | null;
   rooms?: { name: string; type: string } | null;
