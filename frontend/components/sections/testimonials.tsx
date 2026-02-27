@@ -45,8 +45,8 @@ export function TestimonialsSection() {
     >
       <div className="section-container section-padding">
         {/* Header */}
-        <div className="mx-auto max-w-2xl text-center mb-12 lg:mb-16">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3">
+        <div className="max-w-2xl mx-auto mb-12 text-center lg:mb-16">
+          <p className="mb-3 text-sm font-semibold tracking-widest uppercase text-primary">
             Testimonials
           </p>
           <h2
@@ -56,7 +56,7 @@ export function TestimonialsSection() {
             Trusted by patients and{" "}
             <span className="text-gradient-primary">care teams alike</span>
           </h2>
-          <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             Real stories from the people who use Medisync every day.
           </p>
         </div>
@@ -66,23 +66,23 @@ export function TestimonialsSection() {
           {testimonials.map((t) => (
             <Card
               key={t.name}
-              className="border-border/60 transition-shadow hover:shadow-md"
+              className="transition-shadow border-border/60 hover:shadow-md"
             >
               <CardContent className="flex flex-col gap-4 pt-6">
                 <QuoteIcon
-                  className="h-6 w-6 text-primary/40"
+                  className="w-6 h-6 text-primary/40"
                   strokeWidth={1.5}
                 />
-                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-2 border-t border-border/60">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full gradient-primary text-white text-sm font-semibold">
+                  <div className="flex items-center justify-center text-sm font-semibold text-white rounded-full h-9 w-9 shrink-0 gradient-primary">
                     {t.initial}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{t.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs truncate text-muted-foreground">
                       {t.role} - {t.location}
                     </p>
                   </div>

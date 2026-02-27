@@ -13,16 +13,16 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="section-container">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-semibold text-lg"
+            className="flex items-center gap-2 text-lg font-semibold"
             aria-label="Medisync Home"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg gradient-primary">
               <HeartPulseIcon
-                className="h-4 w-4 text-white"
+                className="w-4 h-4 text-white"
                 strokeWidth={2.5}
               />
             </span>
@@ -33,14 +33,14 @@ export function Navbar() {
 
           {/* Desktop Nav */}
           <nav
-            className="hidden md:flex items-center gap-6"
+            className="items-center hidden gap-6 md:flex"
             aria-label="Main navigation"
           >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm transition-colors text-muted-foreground hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -48,7 +48,7 @@ export function Navbar() {
           </nav>
 
           {/* CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="items-center hidden gap-3 md:flex">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
@@ -59,10 +59,10 @@ export function Navbar() {
 
           {/* Mobile Menu Button (visual only - enhance with client component if needed) */}
           <button
-            className="flex md:hidden items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="flex items-center justify-center p-2 rounded-md md:hidden text-muted-foreground hover:text-foreground hover:bg-accent"
             aria-label="Open menu"
           >
-            <MenuIcon className="h-5 w-5" />
+            <MenuIcon className="w-5 h-5" />
           </button>
         </div>
       </div>

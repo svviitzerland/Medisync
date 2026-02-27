@@ -8,23 +8,23 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4">
+    <div className="relative flex flex-col items-center justify-center min-h-screen px-4 overflow-hidden bg-background">
       {/* Ambient background glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+        className="absolute inset-0 overflow-hidden pointer-events-none -z-10"
       >
         <div className="absolute -top-32 left-1/2 h-150 w-150 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute bottom-0 right-0 h-100 w-100 rounded-full bg-primary/5 blur-[100px]" />
       </div>
 
-      <div className="mb-8 flex flex-col items-center gap-2 text-center">
+      <div className="flex flex-col items-center gap-2 mb-8 text-center">
         {/* Logo mark */}
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 ring-1 ring-primary/30">
+        <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/15 ring-1 ring-primary/30">
           <svg
             viewBox="0 0 24 24"
             fill="none"
-            className="h-6 w-6 text-primary"
+            className="w-6 h-6 text-primary"
             stroke="currentColor"
             strokeWidth={1.8}
           >

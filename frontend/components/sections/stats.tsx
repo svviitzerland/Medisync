@@ -39,7 +39,7 @@ export function StatsSection() {
           aria-hidden="true"
         />
 
-        <div className="section-container relative py-16 sm:py-20">
+        <div className="relative py-16 section-container sm:py-20">
           <h2 id="stats-heading" className="sr-only">
             Medisync by the numbers
           </h2>

@@ -36,8 +36,8 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm space-y-4">
-      <Card className="border-border/60 bg-card/80 shadow-xl backdrop-blur-sm">
-        <CardHeader className="border-b border-border/40 pb-4">
+      <Card className="shadow-xl border-border/60 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="pb-4 border-b border-border/40">
           <CardTitle className="text-lg font-semibold">Sign In</CardTitle>
           <CardDescription>
             Enter your credentials to access your account
@@ -106,7 +106,7 @@ export function LoginForm() {
             <Button
               type="submit"
               size="lg"
-              className="mt-1 w-full gap-2"
+              className="w-full gap-2 mt-1"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -146,7 +146,7 @@ export function LoginForm() {
       {/* Dev account switcher - development only */}
       <DevAccountSwitcher onFill={handleFillAccount} />
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-xs text-center text-muted-foreground">
         Protected by Medisync secure access
       </p>
     </div>

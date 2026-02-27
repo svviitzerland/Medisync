@@ -34,8 +34,8 @@ export function HowItWorksSection() {
     >
       <div className="section-container section-padding">
         {/* Header */}
-        <div className="mx-auto max-w-2xl text-center mb-12 lg:mb-16">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3">
+        <div className="max-w-2xl mx-auto mb-12 text-center lg:mb-16">
+          <p className="mb-3 text-sm font-semibold tracking-widest uppercase text-primary">
             How It Works
           </p>
           <h2
@@ -45,7 +45,7 @@ export function HowItWorksSection() {
             Up and running{" "}
             <span className="text-gradient-primary">in three steps</span>
           </h2>
-          <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             Getting started with Medisync is simple. No complex setup, no
             integration headaches - just seamless healthcare from day one.
           </p>
@@ -67,22 +67,22 @@ export function HowItWorksSection() {
               >
                 {/* Number badge */}
                 <div className="relative mb-6">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/20">
+                  <div className="flex items-center justify-center w-20 h-20 shadow-lg rounded-2xl gradient-primary shadow-primary/20">
                     <step.icon
-                      className="h-8 w-8 text-white"
+                      className="w-8 h-8 text-white"
                       strokeWidth={1.75}
                     />
                   </div>
                   <Badge
                     variant="secondary"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold"
+                    className="absolute flex items-center justify-center w-6 h-6 p-0 text-xs font-bold rounded-full -top-2 -right-2"
                   >
                     {step.number}
                   </Badge>
                 </div>
 
-                <h3 className="text-lg font-semibold mb-3">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                <h3 className="mb-3 text-lg font-semibold">{step.title}</h3>
+                <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
                   {step.description}
                 </p>
               </div>

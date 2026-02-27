@@ -32,19 +32,19 @@ const footerLinks = {
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="section-container py-12 lg:py-16">
+      <div className="py-12 section-container lg:py-16">
         {/* Top section */}
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-5 lg:gap-12">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-2 md:col-span-1">
             <Link
               href="/"
-              className="flex items-center gap-2 font-semibold text-lg"
+              className="flex items-center gap-2 text-lg font-semibold"
               aria-label="Medisync Home"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg gradient-primary">
                 <HeartPulseIcon
-                  className="h-4 w-4 text-white"
+                  className="w-4 h-4 text-white"
                   strokeWidth={2.5}
                 />
               </span>
@@ -52,7 +52,7 @@ export function Footer() {
                 Medi<span className="text-primary">sync</span>
               </span>
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xs">
+            <p className="max-w-xs mt-4 text-sm leading-relaxed text-muted-foreground">
               AI-powered healthcare synchronization that connects patients and
               providers seamlessly.
             </p>
@@ -61,7 +61,7 @@ export function Footer() {
           {/* Link Groups */}
           {Object.entries(footerLinks).map(([group, links]) => (
             <div key={group}>
-              <h3 className="text-sm font-semibold text-foreground mb-4">
+              <h3 className="mb-4 text-sm font-semibold text-foreground">
                 {group}
               </h3>
               <ul className="space-y-3">
@@ -69,7 +69,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-sm transition-colors text-muted-foreground hover:text-foreground"
                     >
                       {link.label}
                     </Link>
@@ -87,7 +87,7 @@ export function Footer() {
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Medisync. All rights reserved.
           </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
             Built with care for healthcare
           </p>
         </div>
