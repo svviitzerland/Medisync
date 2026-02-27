@@ -4,6 +4,9 @@ from database import supabase
 router = APIRouter()
 
 
+from dependencies import get_current_user
+from fastapi import Depends
+
 @router.post(
     "/create",
     responses={
@@ -45,6 +48,7 @@ async def create_ticket(
     requires_inpatient: bool = Body(False, examples=[False]),
     severity_level: str = Body(None, examples=["moderate"]),
     ai_reasoning: str = Body(None, examples=["Symptoms indicate respiratory tract infection, requires pulmonologist examination"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     FO creates a new ticket for the patient with auto-assigned Doctor and Nurse (If Inpatient).
@@ -129,7 +133,11 @@ async def create_ticket(
         },
     },
 )
-async def assign_doctor(ticket_id: int, doctor_id: str = Body(..., examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"])):
+async def assign_doctor(
+    ticket_id: int, 
+    doctor_id: str = Body(..., examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"]),
+    user: dict = Depends(get_current_user),
+):
     """
     Place the patient in the doctor's queue (changes ticket status to in_progress)
     """
@@ -178,6 +186,7 @@ async def complete_checkup(
     doctor_note: str = Body(..., examples=["Patient diagnosed with Upper Respiratory Tract Infection (URTI). Prescribed amoxicillin 500mg 3x daily and paracetamol 500mg as needed for fever."]),
     require_pharmacy: bool = Body(False, examples=[True]),
     requires_inpatient: bool = Body(False, examples=[False]),
+    user: dict = Depends(get_current_user),
 ):
     """
     Doctor finishes examination.

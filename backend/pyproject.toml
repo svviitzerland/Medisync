@@ -6,6 +6,7 @@ authors = [
     {name = "AI slop",email = "farhanauliandaa@gmail.com"}
 ]
 requires-python = ">=3.14"
+
 dependencies = [
     "supabase (>=2.28.0,<3.0.0)",
     "python-dotenv (>=1.2.1,<2.0.0)",
@@ -33,3 +34,6 @@ dev = "fastapi dev main.py"
 
 [tool.poe.tasks.format]
 shell = "ruff check --fix && ruff format"
+
+[tool.poetry]
+package-mode = false

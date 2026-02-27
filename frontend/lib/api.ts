@@ -19,6 +19,8 @@ export class ApiError extends Error {
   }
 }
 
+import { supabase } from "@/lib/supabase";
+
 async function parseResponse<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -30,16 +32,31 @@ async function parseResponse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
-function post<T>(path: string, body: unknown): Promise<T> {
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    return { "Authorization": `Bearer ${session.access_token}` };
+  }
+  return {};
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const authHeader = await getAuthHeader();
   return fetch(`${BACKEND_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader
+    },
     body: JSON.stringify(body),
   }).then((res) => parseResponse<T>(res));
 }
 
-function get<T>(path: string): Promise<T> {
-  return fetch(`${BACKEND_URL}${path}`).then((res) => parseResponse<T>(res));
+async function get<T>(path: string): Promise<T> {
+  const authHeader = await getAuthHeader();
+  return fetch(`${BACKEND_URL}${path}`, {
+    headers: { ...authHeader }
+  }).then((res) => parseResponse<T>(res));
 }
 
 // ─── AI Endpoints ────────────────────────────────────────────────────────────

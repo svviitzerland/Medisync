@@ -4,6 +4,9 @@ from database import supabase
 router = APIRouter()
 
 
+from dependencies import get_current_user
+from fastapi import Depends
+
 @router.get(
     "/stats",
     responses={
@@ -30,7 +33,7 @@ router = APIRouter()
         },
     },
 )
-async def get_admin_stats():
+async def get_admin_stats(user: dict = Depends(get_current_user)):
     """
     Fetch hospital data summary for the Admin Dashboard
     """

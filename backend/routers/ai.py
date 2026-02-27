@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Depends
 from database import supabase
-from agents.triage import analyze_patient
+from agents.triage import analyze_patient, summarize_qa_history
 from agents.triage.questions import generate_pre_assessment_questions
 from agents.doctor_assistant import get_doctor_suggestion
 from agents.patient_chatbot import chat_with_patient
+from dependencies import get_current_user
 
 router = APIRouter()
 
@@ -26,10 +27,14 @@ router = APIRouter()
                 }
             },
         },
+        401: {
+            "description": "Unauthorized - Missing or invalid token",
+        },
     },
 )
 async def generate_questions(
     complaint: str = Body(..., examples=["I have a severe headache that won't go away"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     Generate follow-up questions for the pre-assessment chat based on the patient's initial complaint.
@@ -58,21 +63,38 @@ async def generate_questions(
             "description": "Submission failed",
             "content": {"application/json": {"example": {"detail": "Error creating ticket"}}},
         },
+        401: {
+            "description": "Unauthorized - Missing or invalid token",
+        },
     },
 )
 async def submit_pre_assessment(
-    patient_id: str = Body(..., examples=["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]),
     qa_history: list = Body(..., examples=[[{"role": "user", "content": "I have a headache"}, {"role": "assistant", "content": "How long?"}]]),
-    ai_summary: str = Body(..., examples=["Patient has had a headache for 2 days. Suspected tension headache."]),
-    suggested_doctor_id: str = Body(None, examples=["d1e2f3a4-b5c6-7890-abcd-ef1234567890"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     Submit a pre-consultation AI assessment.
     This creates a new ticket containing the AI's summary as the FO note,
     and saves the raw Q&A history to the ai_pre_assessments table for the doctor to review.
     """
+    patient_id = user.get("sub") # use the authenticated user ID
+    
+    if not patient_id:
+        raise HTTPException(status_code=401, detail="Invalid token payload: missing subject")
     try:
-        # 1. Create the Ticket
+        # 1. Generate AI Summary from QA History
+        summary_res = summarize_qa_history(qa_history)
+        if summary_res.get("status") == "error":
+            raise Exception("Failed to generate AI summary: " + summary_res.get("message", "Unknown error"))
+        ai_summary = summary_res.get("summary", "Summary generation failed.")
+
+        # 2. Analyze Patient to get doctor suggestion
+        triage_res = analyze_patient(fo_note=ai_summary, patient_id=patient_id)
+        suggested_doctor_id = None
+        if triage_res.get("status") == "success" and "analysis" in triage_res:
+            suggested_doctor_id = triage_res["analysis"].get("recommended_doctor_id")
+
+        # 3. Create the Ticket
         status = "assigned_doctor" if suggested_doctor_id else "draft"
         ticket_payload = {
             "patient_id": patient_id,
@@ -88,7 +110,7 @@ async def submit_pre_assessment(
             
         ticket_id = ticket_res[1][0]["id"]
 
-        # 2. Save the Assessment History
+        # 4. Save the Assessment History
         assessment_payload = {
             "ticket_id": ticket_id,
             "patient_id": patient_id,
@@ -102,6 +124,8 @@ async def submit_pre_assessment(
             "status": "success",
             "ticket_id": ticket_id,
             "assessment_id": assessment_res[1][0]["id"] if assessment_res[1] else None,
+            "ai_summary": ai_summary,
+            "suggested_doctor_id": suggested_doctor_id
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -141,11 +165,15 @@ async def submit_pre_assessment(
                 }
             },
         },
+        401: {
+            "description": "Unauthorized - Missing or invalid token",
+        },
     },
 )
 async def analyze_ticket(
     fo_note: str = Body(..., examples=["Patient complains of severe headache for 3 days, accompanied by nausea and high fever"]),
     patient_id: str = Body(None, examples=["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     AI Triage Analysis using Strands Agent.
@@ -191,11 +219,15 @@ async def analyze_ticket(
                 }
             },
         },
+        401: {
+            "description": "Unauthorized - Missing or invalid token",
+        },
     },
 )
 async def doctor_assist(
     nik: str = Body(..., examples=["3201012345678901"]),
     doctor_draft: str = Body(None, examples=["Suspected DHF, requires complete blood count and 24-hour observation"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     AI Doctor Assistant using Strands Agent.
@@ -245,11 +277,15 @@ async def doctor_assist(
                 }
             },
         },
+        401: {
+            "description": "Unauthorized - Missing or invalid token",
+        },
     },
 )
 async def patient_chat(
     ticket_id: str = Body(..., examples=["b2c3d4e5-f6a7-8901-bcde-f12345678901"]),
     message: str = Body(..., examples=["Doctor, should I take the medicine before or after meals?"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     Patient Chatbot.

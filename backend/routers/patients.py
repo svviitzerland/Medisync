@@ -4,6 +4,9 @@ from database import supabase
 router = APIRouter()
 
 
+from dependencies import get_current_user
+from fastapi import Depends
+
 @router.post(
     "/register",
     responses={
@@ -38,6 +41,7 @@ async def register_patient(
     name: str = Body(..., examples=["Budi Santoso"]),
     age: int = Body(..., examples=[35]),
     phone: str = Body(..., examples=["081234567890"]),
+    user: dict = Depends(get_current_user),
 ):
     """
     Register a new patient from the FO/Admin side.
