@@ -43,9 +43,9 @@ USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'pharmacist', 'doctor_specialist', 'nurse')
 );
 
-CREATE POLICY "Admin, FO, and Doctors can insert/update invoices" 
+CREATE POLICY "Admin, FO, Pharmacist, and Doctors can insert/update invoices" 
 ON invoices FOR ALL 
 TO authenticated 
 USING (
-    (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'doctor_specialist')
+    (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'pharmacist', 'doctor_specialist')
 );

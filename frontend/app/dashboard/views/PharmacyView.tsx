@@ -82,6 +82,49 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
     setLoading(false);
   }
 
+  async function handleComplete(group: GroupedPrescription) {
+    if (!confirm("Are you sure you want to complete this prescription?")) return;
+
+    try {
+      // 1. Mark prescriptions as dispensed
+      const { error: rxError } = await supabase
+        .from("prescriptions")
+        .update({ status: "dispensed" })
+        .eq("ticket_id", group.ticketId);
+
+      if (rxError) throw rxError;
+
+      // 2. Mark ticket as completed
+      const { error: tError } = await supabase
+        .from("tickets")
+        .update({ status: "completed" })
+        .eq("id", group.ticketId);
+
+      if (tError) throw tError;
+
+      // 3. Create invoice with medicine_fee
+      const medicineFee = group.items.reduce((acc, item) => {
+        return acc + (item.catalog_medicines?.price ?? 0) * item.quantity;
+      }, 0);
+
+      const { error: invError } = await supabase
+        .from("invoices")
+        .insert({
+          ticket_id: group.ticketId,
+          medicine_fee: medicineFee,
+          status: "unpaid"
+        });
+
+      if (invError) throw invError;
+
+      alert("Prescription completed & invoice generated!");
+      fetchPrescriptions();
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to complete prescription: " + err.message);
+    }
+  }
+
   // ---- INVENTORY TAB ----
   if (activeTab === "inventory") {
     return (
@@ -304,7 +347,10 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                 </div>
 
                 <div className="flex justify-end pt-1">
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm transition-colors border rounded-lg border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <button
+                    onClick={() => handleComplete(group)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm transition-colors border rounded-lg border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
                     <Package className="size-3.5" />
                     Complete & Print Invoice
                   </button>

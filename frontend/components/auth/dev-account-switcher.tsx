@@ -15,45 +15,39 @@ type Role = {
 const DEV_ACCOUNTS: Role[] = [
   {
     label: "Admin",
-    email: "admin@rs-sehat.com",
-    password: "password123",
-    color:
-      "bg-rose-500/10 text-rose-400 ring-rose-500/20 hover:bg-rose-500/20 hover:text-rose-300",
+    email: "admin@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Front Office",
-    email: "fo1@rs-sehat.com",
-    password: "password123",
-    color:
-      "bg-violet-500/10 text-violet-400 ring-violet-500/20 hover:bg-violet-500/20 hover:text-violet-300",
+    email: "fo@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Doctor",
-    email: "house.diagnostics@medisync.local",
-    password: "password123",
-    color:
-      "bg-sky-500/10 text-sky-400 ring-sky-500/20 hover:bg-sky-500/20 hover:text-sky-300",
+    email: "dr.andi@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Pharmacist",
-    email: "apotek@rs-sehat.com",
-    password: "password123",
-    color:
-      "bg-amber-500/10 text-amber-400 ring-amber-500/20 hover:bg-amber-500/20 hover:text-amber-300",
+    email: "pharma@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Nurse",
-    email: "nurse.alpha.morning.0@medisync.local",
-    password: "password123",
-    color:
-      "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300",
+    email: "nurse.ratna@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Patient",
-    email: "patient2@example.com",
-    password: "password123",
-    color:
-      "bg-teal-500/10 text-teal-400 ring-teal-500/20 hover:bg-teal-500/20 hover:text-teal-300",
+    email: "pasien_xxx0001@medisync.local",
+    password: "Password123!",
+    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
 ];
 
@@ -85,20 +79,20 @@ export function DevAccountSwitcher({ onFill }: DevAccountSwitcherProps) {
         className="flex w-full items-center justify-between px-3.5 py-2.5 text-left"
       >
         <span className="flex items-center gap-2">
-          <FlaskConical className="size-3.5 text-amber-400" />
-          <span className="text-xs font-medium text-amber-300/90">
+          <FlaskConical className="size-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-foreground">
             Dev Account Switcher
           </span>
           <Badge
             variant="secondary"
-            className="rounded-sm bg-amber-500/15 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-widest text-amber-400 ring-0"
+            className="rounded-sm px-1.5 py-0 text-[10px] font-semibold uppercase tracking-widest ring-0"
           >
             DEV
           </Badge>
         </span>
         <ChevronDown
           className={cn(
-            "size-3.5 text-amber-400/70 transition-transform duration-200",
+            "size-3.5 text-muted-foreground transition-transform duration-200",
             isOpen && "rotate-180",
           )}
         />
@@ -113,35 +107,26 @@ export function DevAccountSwitcher({ onFill }: DevAccountSwitcherProps) {
       >
         <div className="overflow-hidden">
           <div className="border-t border-amber-500/15 px-3 pb-3 pt-2.5">
-            <p className="mb-2.5 text-[11px] text-amber-400/60">
+            <p className="mb-2.5 text-[11px] text-muted-foreground">
               Click a role to auto-fill credentials
             </p>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {DEV_ACCOUNTS.map((role) => (
                 <button
                   key={role.label}
                   type="button"
                   onClick={() => handleSelect(role)}
                   className={cn(
-                    "rounded-lg px-2 py-1.5 text-xs font-medium ring-1 transition-all",
-                    "focus:outline-none",
+                    "rounded-lg px-2 py-2 text-xs font-medium transition-all shadow-sm",
+                    "focus:outline-none focus:ring-2 focus:ring-primary/50",
                     role.color,
-                    activeRole === role.label && "ring-2",
+                    activeRole === role.label && "ring-2 ring-primary border-primary bg-primary/5",
                   )}
                 >
                   {role.label}
                 </button>
               ))}
             </div>
-
-            {activeRole && (
-              <div className="mt-2.5 rounded-lg bg-amber-500/8 px-2.5 py-1.5 text-[11px] text-amber-300/70">
-                <span className="font-medium text-amber-300/90">
-                  {activeRole}
-                </span>{" "}
-                credentials filled in
-              </div>
-            )}
           </div>
         </div>
       </div>
