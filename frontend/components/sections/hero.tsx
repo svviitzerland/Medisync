@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRightIcon } from "lucide-react";
+import { HealthCheckPreview } from "@/components/sections/health-check-preview";
 
 export function HeroSection() {
   return (
@@ -111,93 +112,8 @@ export function HeroSection() {
                 </button>
               </div>
 
-              {/* Main content - two columns */}
-              <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
-                {/* Left: Symptom Input */}
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <p className="mb-1 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                      Describe Your Symptoms
-                    </p>
-                    <div className="p-3 rounded-xl border border-border/60 bg-background min-h-22.5">
-                      <p className="text-sm leading-relaxed text-foreground">
-                        I&apos;ve had chest tightness and shortness of breath
-                        for the past 2 days, especially when climbing stairs.
-                        Also mild dizziness in the mornings.
-                      </p>
-                      <span className="inline-block w-1 h-4 mt-1 rounded-sm bg-primary animate-pulse" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-3 border rounded-xl border-border/60 bg-background">
-                      <p className="mb-1 text-xs text-muted-foreground">
-                        Duration
-                      </p>
-                      <p className="text-sm font-semibold">2 days</p>
-                    </div>
-                    <div className="p-3 border rounded-xl border-border/60 bg-background">
-                      <p className="mb-1 text-xs text-muted-foreground">
-                        Age / Gender
-                      </p>
-                      <p className="text-sm font-semibold">34 / Male</p>
-                    </div>
-                  </div>
-                  <button className="w-full py-2 text-xs font-semibold text-white rounded-lg gradient-primary">
-                    Analyze Symptoms
-                  </button>
-                </div>
-
-                {/* Right: AI Pre-Assessment Result */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
-                      AI Orchestrator - Pre-Assessment Complete
-                    </span>
-                  </div>
-
-                  {/* Severity */}
-                  <div className="p-3 border rounded-xl border-orange-400/40 bg-orange-400/5">
-                    <p className="mb-1 text-xs text-muted-foreground">
-                      Severity Level
-                    </p>
-                    <p className="text-lg font-bold text-orange-500">
-                      Moderate
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Requires attention within 24 hours
-                    </p>
-                  </div>
-
-                  {/* Suggested Specialist */}
-                  <div className="p-3 border rounded-xl border-primary/30 bg-primary/5">
-                    <p className="mb-1 text-xs text-muted-foreground">
-                      Suggested Specialist
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      Cardiologist
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Confidence: 91% - Based on chest + respiratory symptoms
-                    </p>
-                  </div>
-
-                  {/* AI Notes */}
-                  <div className="p-3 border rounded-xl border-border/60 bg-background">
-                    <p className="mb-1 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                      AI Clinical Notes
-                    </p>
-                    <p className="text-xs leading-relaxed text-foreground">
-                      Symptoms suggest possible cardiac or pulmonary etiology.
-                      Pre-assessment forwarded to assigned doctor for review.
-                    </p>
-                  </div>
-
-                  <button className="w-full py-2 text-xs font-semibold border rounded-lg border-primary text-primary bg-primary/5">
-                    Open Ticket & Notify Doctor
-                  </button>
-                </div>
-              </div>
+              {/* Live Health Check component */}
+              <HealthCheckPreview />
             </div>
           </div>
         </div>
