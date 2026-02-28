@@ -29,6 +29,7 @@ import {
   type AISuggestion,
   type PrescriptionItem,
 } from "@/lib/api";
+import { SEVERITY_COLORS } from "@/lib/config";
 import {
   ViewLayout,
   ViewMain,
@@ -93,7 +94,9 @@ export default function DoctorView({ userId }: { userId: string }) {
   const [aiSuggestion, setAiSuggestion] = React.useState<string | null>(null);
 
   // Pre-assessment Q&A
-  const [preAssessmentQA, setPreAssessmentQA] = React.useState<{ role: string; content: string }[]>([]);
+  const [preAssessmentQA, setPreAssessmentQA] = React.useState<
+    { role: string; content: string }[]
+  >([]);
   const [showQA, setShowQA] = React.useState(false);
 
   React.useEffect(() => {
@@ -122,7 +125,7 @@ export default function DoctorView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("tickets")
       .select(
-        "id, fo_note, doctor_note, status, created_at, nurse_team_id, profiles!patient_id(id, name, nik, age)",
+        "id, fo_note, doctor_note, status, created_at, nurse_team_id, severity_level, ai_reasoning, room_id, profiles!patient_id(id, name, nik, age)",
       )
       .eq("doctor_id", userId)
       .neq("status", "completed")
@@ -294,11 +297,7 @@ export default function DoctorView({ userId }: { userId: string }) {
           title="Patient Queue"
           description="Your assigned patients awaiting examination"
         >
-          <Button
-            variant="outline"
-            onClick={fetchMyTickets}
-            className="gap-2"
-          >
+          <Button variant="outline" onClick={fetchMyTickets} className="gap-2">
             <RefreshCw className={cn("size-4", loading && "animate-spin")} />
             Refresh
           </Button>
@@ -339,15 +338,37 @@ export default function DoctorView({ userId }: { userId: string }) {
                           className={cn(
                             "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                             STATUS_COLORS[ticket.status] ??
-                            "bg-muted text-muted-foreground",
+                              "bg-muted text-muted-foreground",
                           )}
                         >
                           {ticket.status?.replace(/_/g, " ")}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        NIK: {ticket.profiles?.nik} · Age: {ticket.profiles?.age}
+                        NIK: {ticket.profiles?.nik} · Age:{" "}
+                        {ticket.profiles?.age}
                       </p>
+                      {ticket.severity_level && (
+                        <span
+                          className={cn(
+                            "inline-flex mt-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                            STATUS_COLORS[
+                              "severity_" + ticket.severity_level
+                            ] ??
+                              (ticket.severity_level === "critical"
+                                ? "bg-red-600/15 text-red-500 border-red-600/20"
+                                : ticket.severity_level === "high"
+                                  ? "bg-rose-500/15 text-rose-400 border-rose-500/20"
+                                  : ticket.severity_level === "moderate"
+                                    ? "bg-orange-500/15 text-orange-400 border-orange-500/20"
+                                    : ticket.severity_level === "medium"
+                                      ? "bg-amber-500/15 text-amber-400 border-amber-500/20"
+                                      : "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"),
+                          )}
+                        >
+                          {ticket.severity_level}
+                        </span>
+                      )}
                       <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
                         {ticket.fo_note}
                       </p>
@@ -406,8 +427,52 @@ export default function DoctorView({ userId }: { userId: string }) {
               <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider mb-2">
                 Patient Complaint
               </p>
-              <p className="leading-relaxed text-foreground/90">{selectedTicket.fo_note}</p>
+              <p className="leading-relaxed text-foreground/90">
+                {selectedTicket.fo_note}
+              </p>
             </div>
+
+            {/* Severity & Care Type */}
+            {(selectedTicket.severity_level || selectedTicket.room_id) && (
+              <div className="flex items-center gap-3 flex-wrap">
+                {selectedTicket.severity_level && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Severity:
+                    </span>
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                        SEVERITY_COLORS[selectedTicket.severity_level] ??
+                          "bg-muted text-muted-foreground border-border",
+                      )}
+                    >
+                      {selectedTicket.severity_level}
+                    </span>
+                  </div>
+                )}
+                {selectedTicket.room_id && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-violet-500/10 border border-violet-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase text-violet-400">
+                    Inpatient
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* AI Triage Reasoning */}
+            {selectedTicket.ai_reasoning && (
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm shadow-inner">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Brain className="size-3.5 text-primary" />
+                  <p className="font-semibold text-primary text-xs uppercase tracking-wider">
+                    AI Triage Reasoning
+                  </p>
+                </div>
+                <p className="leading-relaxed text-foreground/80">
+                  {selectedTicket.ai_reasoning}
+                </p>
+              </div>
+            )}
 
             {/* Pre-assessment Q&A */}
             {preAssessmentQA.length > 0 && (
@@ -416,8 +481,15 @@ export default function DoctorView({ userId }: { userId: string }) {
                   onClick={() => setShowQA(!showQA)}
                   className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
                 >
-                  <ChevronRight className={cn("size-3 transition-transform", showQA && "rotate-90")} />
-                  Pre-Assessment Q&A ({preAssessmentQA.filter(q => q.role === "user").length} answers)
+                  <ChevronRight
+                    className={cn(
+                      "size-3 transition-transform",
+                      showQA && "rotate-90",
+                    )}
+                  />
+                  Pre-Assessment Q&A (
+                  {preAssessmentQA.filter((q) => q.role === "user").length}{" "}
+                  answers)
                 </button>
                 {showQA && (
                   <div className="space-y-1.5 max-h-48 overflow-y-auto rounded-lg border border-border/30 p-3">
@@ -498,7 +570,8 @@ export default function DoctorView({ userId }: { userId: string }) {
 
               {prescriptions.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic py-2">
-                  No prescriptions added. Click &quot;Add Medicine&quot; or use AI Assist.
+                  No prescriptions added. Click &quot;Add Medicine&quot; or use
+                  AI Assist.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -521,9 +594,8 @@ export default function DoctorView({ userId }: { userId: string }) {
                         >
                           {medicines.map((m) => (
                             <option key={m.id} value={m.id}>
-                              {m.name} — Rp{" "}
-                              {m.price.toLocaleString("id-ID")} (stock:{" "}
-                              {m.stock})
+                              {m.name} — Rp {m.price.toLocaleString("id-ID")}{" "}
+                              (stock: {m.stock})
                             </option>
                           ))}
                         </select>
@@ -574,7 +646,6 @@ export default function DoctorView({ userId }: { userId: string }) {
                 </div>
               )}
             </div>
-
 
             {submitError && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
@@ -643,7 +714,7 @@ export default function DoctorView({ userId }: { userId: string }) {
                         className={cn(
                           "inline-flex rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow-sm",
                           STATUS_COLORS[h.status] ??
-                          "bg-muted text-muted-foreground border-border",
+                            "bg-muted text-muted-foreground border-border",
                         )}
                       >
                         {h.status?.replace(/_/g, " ")}
@@ -653,13 +724,19 @@ export default function DoctorView({ userId }: { userId: string }) {
                       </span>
                     </div>
                     <div className="rounded-xl bg-background/50 p-3 border border-border/50">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">FO Complaint</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                        FO Complaint
+                      </p>
                       <p className="text-sm text-foreground/90">{h.fo_note}</p>
                     </div>
                     {h.doctor_note && (
                       <div className="rounded-xl bg-primary/5 p-3 border border-primary/20">
-                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Doctor Diagnosis / Notes</p>
-                        <p className="text-sm text-foreground/90">{h.doctor_note}</p>
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+                          Doctor Diagnosis / Notes
+                        </p>
+                        <p className="text-sm text-foreground/90">
+                          {h.doctor_note}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -692,4 +769,3 @@ function formatAISuggestion(s: AISuggestion): string {
     .filter(Boolean)
     .join("\n");
 }
-

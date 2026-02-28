@@ -11,10 +11,11 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCw,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
-import { ROLE_COLORS, ROLE_LABELS } from "@/lib/config";
+import { ROLE_COLORS, ROLE_LABELS, STATUS_COLORS } from "@/lib/config";
 import {
   ViewLayout,
   ViewMain,
@@ -32,6 +33,9 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
   const [stats, setStats] = React.useState<AdminStats | null>(null);
   const [staff, setStaff] = React.useState<StaffMember[]>([]);
   const [invoices, setInvoices] = React.useState<Invoice[]>([]);
+  const [ticketsByStatus, setTicketsByStatus] = React.useState<
+    { status: string; count: number }[]
+  >([]);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -44,15 +48,19 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
   async function fetchStats() {
     setLoading(true);
 
-    const [patientsRes, doctorsRes, ticketsRes, invoicesRes] =
+    const [patientsRes, doctorsRes, ticketsRes, invoicesRes, allTicketsRes] =
       await Promise.all([
         supabase
           .from("profiles")
           .select("id", { count: "exact", head: true })
           .eq("role", "patient"),
-        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "doctor_specialist"),
+        supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "doctor_specialist"),
         supabase.from("tickets").select("id", { count: "exact", head: true }),
         supabase.from("invoices").select("medicine_fee, room_fee, doctor_fee"),
+        supabase.from("tickets").select("status"),
       ]);
 
     const revenue = (invoicesRes.data ?? []).reduce(
@@ -65,6 +73,18 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
         (inv.room_fee ?? 0) +
         (inv.doctor_fee ?? 0),
       0,
+    );
+
+    // Build ticket status breakdown
+    const statusMap = new Map<string, number>();
+    for (const t of allTicketsRes.data ?? []) {
+      const s = t.status ?? "unknown";
+      statusMap.set(s, (statusMap.get(s) ?? 0) + 1);
+    }
+    setTicketsByStatus(
+      Array.from(statusMap.entries())
+        .map(([status, count]) => ({ status, count }))
+        .sort((a, b) => b.count - a.count),
     );
 
     setStats({
@@ -156,6 +176,37 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
               </div>
             )}
           </ViewContentCard>
+
+          {/* Ticket status breakdown */}
+          {!loading && ticketsByStatus.length > 0 && (
+            <ViewContentCard>
+              <div className="flex items-center gap-2 mb-2">
+                <ClipboardList className="size-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  Tickets by Status
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {ticketsByStatus.map(({ status, count }) => (
+                  <div
+                    key={status}
+                    className="flex items-center justify-between rounded-xl border border-border/40 bg-background px-4 py-3 shadow-sm"
+                  >
+                    <span
+                      className={cn(
+                        "shrink-0 inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-border/50 mr-2",
+                        STATUS_COLORS[status] ??
+                          "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {status.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-lg font-black shrink-0">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </ViewContentCard>
+          )}
         </ViewMain>
       </ViewLayout>
     );
@@ -213,13 +264,15 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
                           key={member.id}
                           className="border-b border-border/30 last:border-0 hover:bg-muted/10 transition-colors"
                         >
-                          <td className="px-5 py-4 font-bold text-foreground">{member.name}</td>
+                          <td className="px-5 py-4 font-bold text-foreground">
+                            {member.name}
+                          </td>
                           <td className="px-5 py-4">
                             <span
                               className={cn(
                                 "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm border border-border/50",
                                 ROLE_COLORS[member.role] ??
-                                "bg-muted text-muted-foreground",
+                                  "bg-muted text-muted-foreground",
                               )}
                             >
                               {ROLE_LABELS[member.role] ?? member.role}
@@ -359,7 +412,9 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
                             <StatusBadge status={inv.status} />
                           </td>
                           <td className="px-5 py-4 text-muted-foreground font-medium text-xs">
-                            {inv.issued_at ? formatDateShort(inv.issued_at) : "—"}
+                            {inv.issued_at
+                              ? formatDateShort(inv.issued_at)
+                              : "—"}
                           </td>
                         </tr>
                       ))
@@ -393,19 +448,28 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <div className={cn("rounded-2xl bg-card p-6 space-y-4 shadow-sm transition-all hover:shadow-md", bg)}>
+    <div
+      className={cn(
+        "rounded-2xl bg-card p-6 space-y-4 shadow-sm transition-all hover:shadow-md",
+        bg,
+      )}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
         <div
           className={cn(
             "flex size-10 items-center justify-center rounded-xl bg-background/50 shadow-sm border border-border/40",
-            color
+            color,
           )}
         >
           <Icon className="size-5" />
         </div>
       </div>
-      <p className="text-3xl font-black tracking-tight text-foreground">{value}</p>
+      <p className="text-3xl font-black tracking-tight text-foreground">
+        {value}
+      </p>
     </div>
   );
 }

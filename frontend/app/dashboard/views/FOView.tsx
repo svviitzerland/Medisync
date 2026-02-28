@@ -481,7 +481,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
           )}
 
           {/* Step 3: Create Ticket */}
-          {patientInfo && foNote.trim() && analysis && (
+          {patientInfo && foNote.trim() && (
             <ViewSection step="3" title="Create Examination Ticket">
               {createSuccess && (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400">

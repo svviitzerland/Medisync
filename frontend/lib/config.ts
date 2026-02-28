@@ -7,7 +7,12 @@ export const BACKEND_URL =
 
 export const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-500/15 text-amber-400",
+  draft: "bg-muted text-muted-foreground",
   in_progress: "bg-sky-500/15 text-sky-400",
+  assigned_doctor: "bg-sky-500/15 text-sky-400",
+  inpatient: "bg-violet-500/15 text-violet-400",
+  operation: "bg-rose-500/15 text-rose-400",
+  waiting_pharmacy: "bg-orange-500/15 text-orange-400",
   completed: "bg-emerald-500/15 text-emerald-400",
 };
 
@@ -16,8 +21,9 @@ export const STATUS_COLORS: Record<string, string> = {
 export const SEVERITY_COLORS: Record<string, string> = {
   low: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
   medium: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  high: "bg-orange-500/15 text-orange-400 border-orange-500/20",
-  critical: "bg-rose-500/15 text-rose-400 border-rose-500/20",
+  moderate: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  high: "bg-rose-500/15 text-rose-400 border-rose-500/20",
+  critical: "bg-red-600/15 text-red-500 border-red-600/20",
 };
 
 // ─── Roles ───────────────────────────────────────────────────────────────────
