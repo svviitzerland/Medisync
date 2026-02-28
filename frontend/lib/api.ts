@@ -24,6 +24,12 @@ import { supabase } from "@/lib/supabase";
 async function parseResponse<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
     throw new ApiError(
       res.status,
       data?.detail ?? `Request failed (${res.status})`,
