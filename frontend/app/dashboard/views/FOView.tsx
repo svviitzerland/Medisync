@@ -15,6 +15,10 @@ import {
   User,
   X,
   FileText,
+  Stethoscope,
+  UserCheck,
+  BedDouble,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
@@ -87,7 +91,8 @@ export default function FOView({ userId: _userId }: { userId: string }) {
   const [loadingTickets, setLoadingTickets] = React.useState(false);
 
   // Modal for recent tickets
-  const [selectedTicket, setSelectedTicket] = React.useState<TicketRecord | null>(null);
+  const [selectedTicket, setSelectedTicket] =
+    React.useState<TicketRecord | null>(null);
 
   React.useEffect(() => {
     fetchTickets();
@@ -307,7 +312,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
           {/* New patient form */}
           {patientInfo?.isNew && (
-            <div className="space-y-3 pt-2">
+            <div className="pt-2 space-y-3">
               <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
                 New Patient Details
               </h3>
@@ -382,48 +387,82 @@ export default function FOView({ userId: _userId }: { userId: string }) {
               )}
 
               {analysis && (
-                <div className="p-4 space-y-3 border rounded-xl border-primary/20 bg-primary/5">
+                <div className="p-4 space-y-4 border rounded-xl border-primary/20 bg-primary/5">
+                  {/* Header */}
                   <div className="flex items-center gap-2">
                     <Brain className="size-4 text-primary" />
                     <span className="text-sm font-semibold">
                       AI Triage Result
                     </span>
                   </div>
+
+                  {/* 2×2 grid of key fields */}
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Severity</span>
-                      <div className="mt-1">
+                    {/* Specialization */}
+                    <div className="flex flex-col gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Stethoscope className="size-3.5" />
+                        Specialization
+                      </div>
+                      <p className="font-semibold text-foreground">
+                        {analysis.predicted_specialization ?? "—"}
+                      </p>
+                    </div>
+
+                    {/* Recommended Doctor */}
+                    <div className="flex flex-col gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <UserCheck className="size-3.5" />
+                        Recommended Doctor
+                      </div>
+                      <p className="font-semibold text-foreground">
+                        {analysis.recommended_doctor_name ?? "—"}
+                      </p>
+                    </div>
+
+                    {/* Severity */}
+                    <div className="flex flex-col gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <ShieldAlert className="size-3.5" />
+                        Severity
+                      </div>
+                      <div>
                         <span
                           className={cn(
-                            "inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
+                            "inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize",
                             SEVERITY_COLORS[analysis.severity_level] ??
-                            "bg-muted text-muted-foreground border-border",
+                              "bg-muted text-muted-foreground border-border",
                           )}
                         >
                           {analysis.severity_level}
                         </span>
                       </div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Inpatient</span>
-                      <p className="mt-1 font-medium">
+
+                    {/* Inpatient */}
+                    <div className="flex flex-col gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <BedDouble className="size-3.5" />
+                        Care Type
+                      </div>
+                      <p className="font-semibold">
                         {analysis.requires_inpatient ? (
                           <span className="text-rose-400">
-                            Yes — Ward admission
+                            Inpatient — Ward
                           </span>
                         ) : (
-                          <span className="text-emerald-400">
-                            No — Outpatient
-                          </span>
+                          <span className="text-emerald-400">Outpatient</span>
                         )}
                       </p>
                     </div>
                   </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground">
+
+                  {/* Reasoning */}
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium tracking-wider uppercase text-muted-foreground">
                       AI Reasoning
                     </span>
-                    <p className="mt-1 text-sm leading-relaxed">
+                    <p className="text-sm leading-relaxed text-foreground/90 bg-background/60 border border-border/40 rounded-lg px-3 py-2.5">
                       {analysis.reasoning}
                     </p>
                   </div>
@@ -456,12 +495,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                   (patientInfo.isNew &&
                     (!newName.trim() || !newAge || !newPhone.trim()))
                 }
-                className="w-full gap-2 shadow-sm font-bold tracking-wide"
+                className="w-full gap-2 font-bold tracking-wide shadow-sm"
               >
                 {creating ? (
                   <Loader2 className="size-5 animate-spin" />
                 ) : (
-                  <Ticket className="size-5 mr-1" />
+                  <Ticket className="mr-1 size-5" />
                 )}
                 {creating ? "Creating..." : "Create Examination Ticket"}
               </Button>
@@ -472,9 +511,9 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
       {/* Right Column: Recent Tickets Sidebar */}
       <ViewSidebar>
-        <div className="flex items-center justify-between bg-card/60 backdrop-blur-md rounded-2xl border border-border/40 p-4 shadow-sm">
+        <div className="flex items-center justify-between p-4 border shadow-sm bg-card/60 backdrop-blur-md rounded-2xl border-border/40">
           <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-xl">
+            <div className="p-2 bg-primary/10 rounded-xl">
               <Ticket className="size-5 text-primary" />
             </div>
             <h3 className="text-base font-bold">Recent Tickets</h3>
@@ -483,7 +522,9 @@ export default function FOView({ userId: _userId }: { userId: string }) {
             onClick={fetchTickets}
             className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-muted/50 px-3 py-1.5 rounded-lg hover:bg-muted"
           >
-            <RefreshCw className={cn("size-3.5", loadingTickets && "animate-spin")} />
+            <RefreshCw
+              className={cn("size-3.5", loadingTickets && "animate-spin")}
+            />
             Refresh
           </button>
         </div>
@@ -500,7 +541,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
             </div>
           ) : tickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-sm border border-dashed rounded-2xl border-border/40 bg-card/10 text-muted-foreground">
-              <Ticket className="size-8 mb-3 opacity-20" />
+              <Ticket className="mb-3 size-8 opacity-20" />
               There are no recent tickets
             </div>
           ) : (
@@ -512,7 +553,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                   className="w-full text-left group relative flex flex-col gap-2 p-4 transition-all duration-200 border rounded-2xl border-border/40 bg-card/60 backdrop-blur-sm hover:bg-card hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <p className="font-semibold text-foreground truncate pr-2">
+                    <p className="pr-2 font-semibold truncate text-foreground">
                       {ticket.profiles?.name ?? "Unknown Patient"}
                     </p>
                   </div>
@@ -521,12 +562,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                       {ticket.fo_note}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/40">
                     <span
                       className={cn(
                         "inline-flex rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm",
                         STATUS_COLORS[ticket.status] ??
-                        "bg-muted text-muted-foreground border border-border",
+                          "bg-muted text-muted-foreground border border-border",
                       )}
                     >
                       {ticket.status?.replace(/_/g, " ")}
@@ -552,36 +593,60 @@ export default function FOView({ userId: _userId }: { userId: string }) {
       >
         {selectedTicket && (
           <>
-            <div className="flex flex-col gap-1 p-4 rounded-2xl bg-muted/30 border border-border/30">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Patient Details</p>
-              <p className="font-semibold text-lg text-foreground">{selectedTicket?.profiles?.name ?? "Unknown Patient"}</p>
-              <p className="text-sm text-muted-foreground font-medium">NIK: {selectedTicket?.profiles?.nik ?? "No NIK"}</p>
+            <div className="flex flex-col gap-1 p-4 border rounded-2xl bg-muted/30 border-border/30">
+              <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                Patient Details
+              </p>
+              <p className="text-lg font-semibold text-foreground">
+                {selectedTicket?.profiles?.name ?? "Unknown Patient"}
+              </p>
+              <p className="text-sm font-medium text-muted-foreground">
+                NIK: {selectedTicket?.profiles?.nik ?? "No NIK"}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Complaint / Notes</p>
-              <div className="bg-background border border-border/50 p-4 rounded-2xl text-sm leading-relaxed text-foreground/90 shadow-inner">
+              <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                Complaint / Notes
+              </p>
+              <div className="p-4 text-sm leading-relaxed border shadow-inner bg-background border-border/50 rounded-2xl text-foreground/90">
                 {selectedTicket?.fo_note}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Status
+                </p>
                 <div>
-                  <span className={cn("inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm", selectedTicket?.status && STATUS_COLORS[selectedTicket.status] ? STATUS_COLORS[selectedTicket.status] : "bg-muted")}>
+                  <span
+                    className={cn(
+                      "inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm",
+                      selectedTicket?.status &&
+                        STATUS_COLORS[selectedTicket.status]
+                        ? STATUS_COLORS[selectedTicket.status]
+                        : "bg-muted",
+                    )}
+                  >
                     {selectedTicket?.status?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</p>
-                <p className="text-sm font-medium">{selectedTicket?.created_at ? formatDate(selectedTicket.created_at) : ""}</p>
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Registered
+                </p>
+                <p className="text-sm font-medium">
+                  {selectedTicket?.created_at
+                    ? formatDate(selectedTicket.created_at)
+                    : ""}
+                </p>
               </div>
             </div>
           </>
         )}
       </ViewModal>
-    </ViewLayout >
+    </ViewLayout>
   );
 }
