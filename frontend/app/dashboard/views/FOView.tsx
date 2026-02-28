@@ -25,10 +25,10 @@ import { formatDate } from "@/lib/utils";
 import { STATUS_COLORS, SEVERITY_COLORS } from "@/lib/config";
 import {
   analyzeTicket,
-  registerPatient,
   createTicket,
   ApiError,
 } from "@/lib/api";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,6 +86,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
   const [analysis, setAnalysis] = React.useState<AIAnalysis | null>(null);
   const [analyzing, setAnalyzing] = React.useState(false);
   const [analysisError, setAnalysisError] = React.useState<string | null>(null);
+  const [manualInpatient, setManualInpatient] = React.useState<boolean | null>(null);
 
   // Ticket creation
   const [creating, setCreating] = React.useState(false);
@@ -109,6 +110,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
     setSearching(true);
     setPatientInfo(null);
     setAnalysis(null);
+    setManualInpatient(null);
     setCreateSuccess(null);
 
     const { data } = await supabase
@@ -136,6 +138,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
       const data = await analyzeTicket(foNote, patientInfo?.id ?? null);
       if (data.status === "success") {
         setAnalysis(data.analysis ?? null);
+        setManualInpatient(data.analysis?.requires_inpatient ?? false);
       } else {
         setAnalysisError(data.message ?? "AI analysis failed");
       }
@@ -161,25 +164,44 @@ export default function FOView({ userId: _userId }: { userId: string }) {
     // Register new patient if needed
     if (patientInfo.isNew) {
       try {
-        const regData = await registerPatient({
-          nik: nikSearch,
-          name: newName,
-          age: parseInt(newAge),
-          phone: newPhone,
+        const tempSupabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false, autoRefreshToken: false } }
+        );
+
+        const email = `${nikSearch}@medisync.local`;
+        const password = `Password123!`;
+
+        const { data: authData, error: authError } = await tempSupabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              role: "patient",
+              nik: nikSearch,
+              name: newName,
+              age: parseInt(newAge),
+              phone: newPhone,
+            },
+          },
         });
-        if (regData.patient?.id) {
-          finalPatientId = regData.patient.id;
-        } else {
-          setCreateError(regData.detail ?? "Patient registration failed");
+
+        if (authError) {
+          setCreateError(authError.message || "Patient registration failed");
           setCreating(false);
           return;
         }
-      } catch (err) {
-        setCreateError(
-          err instanceof ApiError
-            ? err.message
-            : "Could not register new patient. Please try again.",
-        );
+
+        if (authData.user?.id) {
+          finalPatientId = authData.user.id;
+        } else {
+          setCreateError("Patient registration failed");
+          setCreating(false);
+          return;
+        }
+      } catch (err: any) {
+        setCreateError(err.message || "Could not register new patient. Please try again.");
         setCreating(false);
         return;
       }
@@ -192,7 +214,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
         fo_note: foNote,
         ...(analysis && {
           doctor_id: analysis.recommended_doctor_id,
-          requires_inpatient: analysis.requires_inpatient,
+          requires_inpatient: manualInpatient ?? analysis.requires_inpatient,
           severity_level: analysis.severity_level,
           ai_reasoning: analysis.reasoning,
         }),
@@ -210,6 +232,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
       setPatientInfo(null);
       setFoNote("");
       setAnalysis(null);
+      setManualInpatient(null);
       setNewName("");
       setNewAge("");
       setNewPhone("");
@@ -440,7 +463,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                           className={cn(
                             "inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize",
                             SEVERITY_COLORS[analysis.severity_level] ??
-                              "bg-muted text-muted-foreground border-border",
+                            "bg-muted text-muted-foreground border-border",
                           )}
                         >
                           {analysis.severity_level}
@@ -449,20 +472,35 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                     </div>
 
                     {/* Inpatient */}
-                    <div className="flex flex-col gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
+                    <div className="flex flex-col justify-between gap-1 rounded-lg border border-border/40 bg-background/60 px-3 py-2.5">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                         <BedDouble className="size-3.5" />
-                        Care Type
+                        Care Type (Editable)
                       </div>
-                      <p className="font-semibold">
-                        {analysis.requires_inpatient ? (
-                          <span className="text-rose-400">
-                            Inpatient — Ward
-                          </span>
-                        ) : (
-                          <span className="text-emerald-400">Outpatient</span>
-                        )}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <button
+                          onClick={() => setManualInpatient(false)}
+                          className={cn(
+                            "flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors border",
+                            manualInpatient === false
+                              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+                              : "bg-background text-muted-foreground hover:bg-muted border-border"
+                          )}
+                        >
+                          Outpatient
+                        </button>
+                        <button
+                          onClick={() => setManualInpatient(true)}
+                          className={cn(
+                            "flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors border",
+                            manualInpatient === true
+                              ? "bg-rose-500/10 text-rose-500 border-rose-500/30"
+                              : "bg-background text-muted-foreground hover:bg-muted border-border"
+                          )}
+                        >
+                          Inpatient
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -587,7 +625,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                       className={cn(
                         "inline-flex rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm",
                         STATUS_COLORS[ticket.status] ??
-                          "bg-muted text-muted-foreground border border-border",
+                        "bg-muted text-muted-foreground border border-border",
                       )}
                     >
                       {ticket.status?.replace(/_/g, " ")}
@@ -640,6 +678,45 @@ export default function FOView({ userId: _userId }: { userId: string }) {
             {/* Status + Severity + Care Type */}
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Care Type
+                </p>
+                <div>
+                  {selectedTicket?.rooms ? (
+                    <span className="inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm bg-rose-500/10 text-rose-500 border border-rose-500/30">
+                      Inpatient ({selectedTicket.rooms.name})
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                      Outpatient
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Assigned Doctor
+                </p>
+                <p className="text-sm font-semibold">
+                  {selectedTicket?.doctor ? (
+                    <span className="text-foreground">
+                      {selectedTicket.doctor.name}
+                      <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                        {selectedTicket.doctor.specialization}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground italic">
+                      Pending Assignment
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
                 <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
                   Status
                 </p>

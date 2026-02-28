@@ -128,8 +128,9 @@ export default function PatientView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("invoices")
       .select(
-        "id, doctor_fee, medicine_fee, room_fee, total_amount, status, issued_at, tickets!inner(id, fo_note)",
+        "id, doctor_fee, medicine_fee, room_fee, total_amount, status, issued_at, tickets!inner(id, fo_note, patient_id)",
       )
+      .eq("tickets.patient_id", userId)
       .order("issued_at", { ascending: false });
     setInvoices((data as unknown as PatientInvoice[]) ?? []);
     setLoading(false);

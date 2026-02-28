@@ -183,25 +183,6 @@ export function completeCheckup(
 
 // ─── Patient Endpoints ───────────────────────────────────────────────────────
 
-export interface RegisterPatientPayload {
-  nik: string;
-  name: string;
-  age: number;
-  phone: string;
-}
-
-export interface RegisterPatientResponse {
-  patient?: { id: string };
-  detail?: string;
-}
-
-/** POST /api/patients/register */
-export function registerPatient(
-  payload: RegisterPatientPayload,
-): Promise<RegisterPatientResponse> {
-  return post("/api/patients/register", payload);
-}
-
 // ─── Admin Endpoints ─────────────────────────────────────────────────────────
 
 export interface AdminStats {
