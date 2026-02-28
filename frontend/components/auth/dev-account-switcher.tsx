@@ -17,37 +17,43 @@ const DEV_ACCOUNTS: Role[] = [
     label: "Admin",
     email: "admin@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Front Office",
     email: "fo@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Doctor",
     email: "dr.andi@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Pharmacist",
     email: "pharma@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Nurse",
     email: "nurse.ratna@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
   {
     label: "Patient",
-    email: "pasien_xxx0001@medisync.local",
+    email: "pasien_3201010101010002@medisync.local",
     password: "Password123!",
-    color: "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
+    color:
+      "bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary border border-border/50",
   },
 ];
 
@@ -120,7 +126,8 @@ export function DevAccountSwitcher({ onFill }: DevAccountSwitcherProps) {
                     "rounded-lg px-2 py-2 text-xs font-medium transition-all shadow-sm",
                     "focus:outline-none focus:ring-2 focus:ring-primary/50",
                     role.color,
-                    activeRole === role.label && "ring-2 ring-primary border-primary bg-primary/5",
+                    activeRole === role.label &&
+                      "ring-2 ring-primary border-primary bg-primary/5",
                   )}
                 >
                   {role.label}

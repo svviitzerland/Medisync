@@ -91,7 +91,7 @@ export function FeaturesSection() {
           {features.map((feature) => (
             <Card
               key={feature.title}
-              className="relative overflow-hidden transition-shadow group border-border/60 hover:shadow-md"
+              className="relative overflow-hidden group border-border/60 transition-shadow duration-200 hover:shadow-md"
             >
               <CardHeader className="pb-3">
                 <div
@@ -100,6 +100,7 @@ export function FeaturesSection() {
                   <feature.icon
                     className={`h-5 w-5 ${feature.accent}`}
                     strokeWidth={1.75}
+                    aria-hidden="true"
                   />
                 </div>
                 <h3 className="text-base font-semibold">{feature.title}</h3>
