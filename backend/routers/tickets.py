@@ -21,7 +21,7 @@ from fastapi import Depends
                             "patient_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                             "fo_note": "Patient presents with high fever and productive cough for 5 days",
                             "doctor_id": "d1e2f3a4-b5c6-7890-abcd-ef1234567890",
-                            "status": "assigned_doctor",
+                            "status": "in_progress",
                             "severity_level": "moderate",
                             "ai_reasoning": "Symptoms indicate respiratory tract infection",
                             "created_at": "2026-02-28T01:00:00+07:00",
@@ -58,7 +58,7 @@ async def create_ticket(
 
         if requires_inpatient:
             # round-robin ...
-            nurses_res = supabase.table("nurses").select("team_id").execute()
+            nurses_res = supabase.table("profiles").select("team_id").eq("role", "nurse").not_.is_("team_id", "null").execute()
             active_teams = (
                 set([n["team_id"] for n in nurses_res.data])
                 if nurses_res.data
@@ -68,7 +68,7 @@ async def create_ticket(
             tickets_res = (
                 supabase.table("tickets")
                 .select("nurse_team_id")
-                .in_("status", ["inpatient", "operation"])
+                .in_("status", ["in_progress"])
                 .execute()
             )
 
@@ -82,7 +82,7 @@ async def create_ticket(
             nurse_team_id = min(team_loads, key=team_loads.get)
 
         # Create Ticket
-        status = "assigned_doctor" if doctor_id else "draft"
+        status = "in_progress" if doctor_id else "pending"
         payload = {
             "patient_id": patient_id,
             "fo_note": fo_note,
@@ -117,7 +117,7 @@ async def create_ticket(
                         "ticket": {
                             "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
                             "doctor_id": "d1e2f3a4-b5c6-7890-abcd-ef1234567890",
-                            "status": "assigned_doctor",
+                            "status": "in_progress",
                         },
                     }
                 }
@@ -144,7 +144,7 @@ async def assign_doctor(
     try:
         data, count = (
             supabase.table("tickets")
-            .update({"doctor_id": doctor_id, "status": "assigned_doctor"})
+            .update({"doctor_id": doctor_id, "status": "in_progress"})
             .eq("id", ticket_id)
             .execute()
         )
@@ -157,16 +157,18 @@ async def assign_doctor(
     "/{ticket_id}/complete-checkup",
     responses={
         200: {
-            "description": "Checkup completed successfully",
+            "description": "Checkup completed, prescriptions saved, invoice generated",
             "content": {
                 "application/json": {
                     "example": {
                         "status": "success",
                         "ticket": {
                             "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-                            "doctor_note": "Patient diagnosed with Upper Respiratory Tract Infection (URTI). Prescribed amoxicillin 500mg 3x daily and paracetamol 500mg as needed for fever.",
-                            "status": "waiting_pharmacy",
+                            "doctor_note": "Patient diagnosed with URTI.",
+                            "status": "completed",
                         },
+                        "prescriptions_count": 2,
+                        "invoice_id": "f1e2d3c4-b5a6-7890-cdef-123456789012",
                     }
                 }
             },
@@ -182,29 +184,72 @@ async def assign_doctor(
     },
 )
 async def complete_checkup(
-    ticket_id: int,
-    doctor_note: str = Body(..., examples=["Patient diagnosed with Upper Respiratory Tract Infection (URTI). Prescribed amoxicillin 500mg 3x daily and paracetamol 500mg as needed for fever."]),
-    require_pharmacy: bool = Body(False, examples=[True]),
-    requires_inpatient: bool = Body(False, examples=[False]),
+    ticket_id: str,
+    doctor_note: str = Body(..., examples=["Patient diagnosed with URTI."]),
+    prescriptions: list = Body([], examples=[[{"medicine_id": 1, "quantity": 10, "notes": "3x daily after meals"}]]),
+    doctor_fee: float = Body(150000, examples=[150000]),
     user: dict = Depends(get_current_user),
 ):
     """
     Doctor finishes examination.
-    Status can change to 'waiting_pharmacy', 'inpatient', or 'completed'.
+    - Saves doctor_note on ticket
+    - Creates prescription records if medicines are provided
+    - Calculates medicine_fee from catalog_medicines prices
+    - Auto-generates an invoice
+    - Status is always set to completed
     """
     new_status = "completed"
-    if require_pharmacy:
-        new_status = "waiting_pharmacy"
-    elif requires_inpatient:
-        new_status = "inpatient"
 
     try:
+        # 1. Update ticket
         data, count = (
             supabase.table("tickets")
             .update({"doctor_note": doctor_note, "status": new_status})
             .eq("id", ticket_id)
             .execute()
         )
-        return {"status": "success", "ticket": data[1][0] if data[1] else None}
+        ticket = data[1][0] if data[1] else None
+
+        # 2. Create prescriptions if any
+        medicine_fee = 0.0
+        prescriptions_created = 0
+
+        if prescriptions:
+            for rx in prescriptions:
+                med_id = rx.get("medicine_id")
+                qty = rx.get("quantity", 1)
+                notes = rx.get("notes", "")
+
+                # Get medicine price from catalog
+                med_res = supabase.table("catalog_medicines").select("price").eq("id", med_id).execute()
+                price = float(med_res.data[0]["price"]) if med_res.data else 0
+                medicine_fee += price * qty
+
+                supabase.table("prescriptions").insert({
+                    "ticket_id": ticket_id,
+                    "medicine_id": med_id,
+                    "quantity": qty,
+                    "notes": notes,
+                    "status": "pending",
+                }).execute()
+                prescriptions_created += 1
+
+        # 3. Auto-generate invoice
+        invoice_payload = {
+            "ticket_id": ticket_id,
+            "doctor_fee": doctor_fee,
+            "medicine_fee": medicine_fee,
+            "room_fee": 0,  # room fee set separately if inpatient
+            "status": "unpaid",
+        }
+        inv_res, _ = supabase.table("invoices").insert(invoice_payload).execute()
+        invoice_id = inv_res[1][0]["id"] if inv_res[1] else None
+
+        return {
+            "status": "success",
+            "ticket": ticket,
+            "prescriptions_count": prescriptions_created,
+            "invoice_id": invoice_id,
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

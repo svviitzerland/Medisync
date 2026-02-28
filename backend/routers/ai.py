@@ -95,7 +95,7 @@ async def submit_pre_assessment(
             suggested_doctor_id = triage_res["analysis"].get("recommended_doctor_id")
 
         # 3. Create the Ticket
-        status = "assigned_doctor" if suggested_doctor_id else "draft"
+        status = "in_progress" if suggested_doctor_id else "pending"
         ticket_payload = {
             "patient_id": patient_id,
             "fo_note": ai_summary,  # The AI summary acts as the initial FO note

@@ -42,30 +42,42 @@ def get_patient_ticket_history(patient_id: str) -> str:
         res = (
             supabase.table("tickets")
             .select(
-                "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at, "
-                "doctor:doctors(specialization, profile:profiles(name))"
+                "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at, doctor_id"
             )
             .eq("patient_id", patient_id)
             .order("created_at", desc=True)
             .limit(10)
             .execute()
         )
+
+        # Collect doctor IDs to look up names
+        doctor_ids = list(set(
+            t["doctor_id"] for t in (res.data or []) if t.get("doctor_id")
+        ))
+        doctor_map = {}
+        if doctor_ids:
+            doc_res = (
+                supabase.table("profiles")
+                .select("id, name, specialization")
+                .in_("id", doctor_ids)
+                .execute()
+            )
+            for doc in doc_res.data or []:
+                doctor_map[doc["id"]] = {
+                    "name": doc.get("name", "N/A"),
+                    "specialization": doc.get("specialization", "N/A"),
+                }
+
         history = []
         for ticket in res.data or []:
-            doc_name = "N/A"
-            doc_spec = "N/A"
-            if ticket.get("doctor"):
-                doc_spec = ticket["doctor"].get("specialization", "N/A")
-                if ticket["doctor"].get("profile"):
-                    doc_name = ticket["doctor"]["profile"].get("name", "N/A")
-
+            doc_info = doctor_map.get(ticket.get("doctor_id"), {})
             history.append(
                 {
                     "ticket_id": ticket["id"],
                     "complaint": ticket.get("fo_note", ""),
                     "doctor_diagnosis": ticket.get("doctor_note", ""),
-                    "doctor_name": doc_name,
-                    "specialization": doc_spec,
+                    "doctor_name": doc_info.get("name", "N/A"),
+                    "specialization": doc_info.get("specialization", "N/A"),
                     "status": ticket["status"],
                     "severity": ticket.get("severity_level", ""),
                     "date": ticket.get("created_at", ""),
@@ -98,7 +110,7 @@ def get_current_ticket(patient_id: str) -> str:
                 "id, fo_note, doctor_note, status, severity_level, ai_reasoning, created_at"
             )
             .eq("patient_id", patient_id)
-            .in_("status", ["assigned_doctor", "in_progress"])
+            .in_("status", ["in_progress"])
             .order("created_at", desc=True)
             .limit(1)
             .execute()
@@ -161,6 +173,10 @@ def submit_doctor_suggestion(
         "reasoning": reasoning,
     }
     return json.dumps(
-        {"status": "suggestion_recorded", "suggestion": suggestion},
+        {
+            "status": "suggestion_recorded",
+            "suggestion": suggestion,
+            "instruction": "DONE. Your suggestion has been recorded. Do NOT call any more tools. Respond with a brief summary to the doctor.",
+        },
         ensure_ascii=False,
     )

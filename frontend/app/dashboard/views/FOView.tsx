@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  X,
   FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,15 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  ViewLayout,
+  ViewMain,
+  ViewHeader,
+  ViewContentCard,
+  ViewSection,
+  ViewSidebar,
+  ViewModal,
+} from "@/components/dashboard/view-layout";
 import type { AIAnalysis } from "@/types";
 
 import { useSearchParams } from "next/navigation";
@@ -75,7 +85,9 @@ export default function FOView({ userId: _userId }: { userId: string }) {
   // Ticket list
   const [tickets, setTickets] = React.useState<TicketRecord[]>([]);
   const [loadingTickets, setLoadingTickets] = React.useState(false);
-  const [showForm, setShowForm] = React.useState(true);
+
+  // Modal for recent tickets
+  const [selectedTicket, setSelectedTicket] = React.useState<TicketRecord | null>(null);
 
   React.useEffect(() => {
     fetchTickets();
@@ -215,36 +227,18 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
   // ---- Queue & Registration ----
   return (
-    <div className="max-w-5xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Queue & Registration</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Register patients and create examination tickets
-          </p>
-        </div>
-        <button
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => setShowForm((v) => !v)}
-        >
-          {showForm ? (
-            <ChevronUp className="size-4" />
-          ) : (
-            <ChevronDown className="size-4" />
-          )}
-          {showForm ? "Hide form" : "New ticket"}
-        </button>
-      </div>
+    <ViewLayout>
+      {/* Main Column: Registration Form (Centered) */}
+      <ViewMain>
+        <ViewHeader
+          title="Patient Registration"
+          description="Register new patients or create examination tickets. Fill out the patient details and symptom assessment."
+        />
 
-      {/* Registration Form */}
-      {showForm && (
-        <div className="p-5 space-y-5 border rounded-xl border-border/50 bg-card">
+        {/* Registration Form */}
+        <ViewContentCard>
           {/* Step 1: NIK Search */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
-              Step 1 — Patient Lookup
-            </h3>
+          <ViewSection step="1" title="Search Patient">
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input
@@ -309,11 +303,11 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                 </div>
               </div>
             )}
-          </div>
+          </ViewSection>
 
           {/* New patient form */}
           {patientInfo?.isNew && (
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
                 New Patient Details
               </h3>
@@ -351,10 +345,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
           {/* Step 2: Complaint note + AI Triage */}
           {patientInfo && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
-                Step 2 — Complaint & AI Triage
-              </h3>
+            <ViewSection step="2" title="Complaint & AI Triage">
               <div className="space-y-3">
                 <textarea
                   placeholder="Describe the patient's complaint (symptoms, duration, severity…)"
@@ -438,16 +429,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                   </div>
                 </div>
               )}
-            </div>
+            </ViewSection>
           )}
 
           {/* Step 3: Create Ticket */}
-          {patientInfo && foNote.trim() && (
-            <div className="pt-1 space-y-3">
-              <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
-                Step 3 — Create Ticket
-              </h3>
-
+          {patientInfo && foNote.trim() && analysis && (
+            <ViewSection step="3" title="Create Examination Ticket">
               {createSuccess && (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400">
                   <CheckCircle2 className="size-4 shrink-0" />
@@ -462,86 +449,139 @@ export default function FOView({ userId: _userId }: { userId: string }) {
               )}
 
               <Button
+                size="lg"
                 onClick={handleCreateTicket}
                 disabled={
                   creating ||
                   (patientInfo.isNew &&
                     (!newName.trim() || !newAge || !newPhone.trim()))
                 }
-                className="gap-2"
+                className="w-full gap-2 shadow-sm font-bold tracking-wide"
               >
                 {creating ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="size-5 animate-spin" />
                 ) : (
-                  <Ticket className="size-4" />
+                  <Ticket className="size-5 mr-1" />
                 )}
-                Create Ticket
+                {creating ? "Creating..." : "Create Examination Ticket"}
               </Button>
-            </div>
+            </ViewSection>
           )}
-        </div>
-      )}
+        </ViewContentCard>
+      </ViewMain>
 
-      {/* Recent Tickets */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold">Recent Tickets</h3>
+      {/* Right Column: Recent Tickets Sidebar */}
+      <ViewSidebar>
+        <div className="flex items-center justify-between bg-card/60 backdrop-blur-md rounded-2xl border border-border/40 p-4 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 p-2 rounded-xl">
+              <Ticket className="size-5 text-primary" />
+            </div>
+            <h3 className="text-base font-bold">Recent Tickets</h3>
+          </div>
           <button
             onClick={fetchTickets}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-muted/50 px-3 py-1.5 rounded-lg hover:bg-muted"
           >
-            <RefreshCw className="size-3.5" />
+            <RefreshCw className={cn("size-3.5", loadingTickets && "animate-spin")} />
             Refresh
           </button>
         </div>
 
-        {loadingTickets ? (
-          <div className="space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-16 border animate-pulse rounded-xl border-border/30 bg-card"
-              />
-            ))}
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-sm border rounded-xl border-border/30 text-muted-foreground">
-            No tickets yet
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {tickets.map((ticket) => (
-              <div
-                key={ticket.id}
-                className="flex items-center gap-4 px-4 py-3 transition-colors border rounded-xl border-border/40 bg-card hover:bg-muted/20"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {ticket.profiles?.name ?? "Unknown Patient"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    {ticket.fo_note}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span
-                    className={cn(
-                      "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-                      STATUS_COLORS[ticket.status] ??
-                      "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {ticket.status?.replace(/_/g, " ")}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(ticket.created_at)}
+        <div className="flex flex-col gap-3">
+          {loadingTickets ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[104px] border animate-pulse rounded-2xl border-border/30 bg-card/40"
+                />
+              ))}
+            </div>
+          ) : tickets.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-sm border border-dashed rounded-2xl border-border/40 bg-card/10 text-muted-foreground">
+              <Ticket className="size-8 mb-3 opacity-20" />
+              There are no recent tickets
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tickets.map((ticket) => (
+                <button
+                  key={ticket.id}
+                  onClick={() => setSelectedTicket(ticket)}
+                  className="w-full text-left group relative flex flex-col gap-2 p-4 transition-all duration-200 border rounded-2xl border-border/40 bg-card/60 backdrop-blur-sm hover:bg-card hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <p className="font-semibold text-foreground truncate pr-2">
+                      {ticket.profiles?.name ?? "Unknown Patient"}
+                    </p>
+                  </div>
+                  <div className="mt-1">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {ticket.fo_note}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+                    <span
+                      className={cn(
+                        "inline-flex rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm",
+                        STATUS_COLORS[ticket.status] ??
+                        "bg-muted text-muted-foreground border border-border",
+                      )}
+                    >
+                      {ticket.status?.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      {formatDate(ticket.created_at)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </ViewSidebar>
+
+      {/* Ticket Details Modal overlays the whole viewport */}
+      <ViewModal
+        title="Ticket Info"
+        description="Details and current status"
+        isOpen={!!selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+        icon={<Ticket className="size-6" />}
+      >
+        {selectedTicket && (
+          <>
+            <div className="flex flex-col gap-1 p-4 rounded-2xl bg-muted/30 border border-border/30">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Patient Details</p>
+              <p className="font-semibold text-lg text-foreground">{selectedTicket?.profiles?.name ?? "Unknown Patient"}</p>
+              <p className="text-sm text-muted-foreground font-medium">NIK: {selectedTicket?.profiles?.nik ?? "No NIK"}</p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Complaint / Notes</p>
+              <div className="bg-background border border-border/50 p-4 rounded-2xl text-sm leading-relaxed text-foreground/90 shadow-inner">
+                {selectedTicket?.fo_note}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
+                <div>
+                  <span className={cn("inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm", selectedTicket?.status && STATUS_COLORS[selectedTicket.status] ? STATUS_COLORS[selectedTicket.status] : "bg-muted")}>
+                    {selectedTicket?.status?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</p>
+                <p className="text-sm font-medium">{selectedTicket?.created_at ? formatDate(selectedTicket.created_at) : ""}</p>
+              </div>
+            </div>
+          </>
         )}
-      </div>
-    </div>
+      </ViewModal>
+    </ViewLayout >
   );
 }

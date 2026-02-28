@@ -6,13 +6,9 @@ export const BACKEND_URL =
 // ─── Ticket Status ───────────────────────────────────────────────────────────
 
 export const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  assigned_doctor: "bg-sky-500/15 text-sky-400",
+  pending: "bg-amber-500/15 text-amber-400",
   in_progress: "bg-sky-500/15 text-sky-400",
-  inpatient: "bg-violet-500/15 text-violet-400",
-  waiting_pharmacy: "bg-amber-500/15 text-amber-400",
   completed: "bg-emerald-500/15 text-emerald-400",
-  operation: "bg-rose-500/15 text-rose-400",
 };
 
 // ─── Severity ────────────────────────────────────────────────────────────────

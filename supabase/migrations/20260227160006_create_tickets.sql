@@ -2,10 +2,10 @@
 CREATE TABLE tickets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     patient_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    doctor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     fo_note TEXT,
     doctor_note TEXT,
-    status ticket_status DEFAULT 'draft',
-    doctor_id UUID REFERENCES doctors(id) ON DELETE SET NULL,
+    status ticket_status DEFAULT 'pending',
     room_id INT REFERENCES rooms(id) ON DELETE SET NULL,
     nurse_team_id INT REFERENCES nurse_teams(id) ON DELETE SET NULL,
     consultation_fee DECIMAL(10,2) DEFAULT 0,
@@ -14,6 +14,10 @@ CREATE TABLE tickets (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_tickets_patient ON tickets(patient_id);
+CREATE INDEX idx_tickets_doctor ON tickets(doctor_id);
+CREATE INDEX idx_tickets_status ON tickets(status);
 
 -- RLS: tickets
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
@@ -42,4 +46,14 @@ ON tickets FOR UPDATE
 TO authenticated 
 USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') IN ('admin', 'fo', 'doctor_specialist', 'nurse', 'pharmacist', 'agent')
+);
+
+-- Patients can see profiles of doctors assigned to their tickets
+CREATE POLICY "Patients can view assigned doctor profiles"
+ON profiles FOR SELECT
+TO authenticated
+USING (
+    id IN (
+        SELECT doctor_id FROM tickets WHERE patient_id = auth.uid() AND doctor_id IS NOT NULL
+    )
 );

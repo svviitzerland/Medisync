@@ -24,6 +24,12 @@ import { supabase } from "@/lib/supabase";
 async function parseResponse<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
     throw new ApiError(
       res.status,
       data?.detail ?? `Request failed (${res.status})`,
@@ -155,10 +161,16 @@ export function createTicket(
   return post("/api/tickets/create", payload);
 }
 
+export interface PrescriptionItem {
+  medicine_id: number;
+  quantity: number;
+  notes?: string;
+}
+
 export interface CompleteCheckupPayload {
   doctor_note: string;
-  require_pharmacy?: boolean;
-  requires_inpatient?: boolean;
+  prescriptions?: PrescriptionItem[];
+  doctor_fee?: number;
 }
 
 /** POST /api/tickets/{ticket_id}/complete-checkup */
@@ -191,6 +203,13 @@ export function registerPatient(
 }
 
 // ─── Admin Endpoints ─────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  totalPatients: number;
+  totalDoctors: number;
+  totalTickets: number;
+  totalRevenue: number;
+}
 
 /** GET /api/admin/stats — normalises API response `{patients, doctors, tickets, revenue}` to `AdminStats` */
 export async function getAdminStats(): Promise<AdminStats> {
@@ -231,6 +250,8 @@ export interface SubmitPreAssessmentResponse {
   status: "success" | "error";
   ticket_id?: string;
   assessment_id?: string;
+  ai_summary?: string;
+  suggested_doctor_id?: string | null;
   detail?: string;
 }
 

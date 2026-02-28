@@ -83,6 +83,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
@@ -123,6 +124,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   h1,
   h2,
@@ -131,10 +134,29 @@
   h5,
   h6 {
     @apply font-semibold tracking-tight;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :root {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer utilities {
+  [id] {
+    scroll-margin-top: 5rem;
+  }
   .section-container {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
@@ -151,8 +173,8 @@
   .text-gradient-primary {
     background: linear-gradient(
       135deg,
-      oklch(0.55 0.12 185),
-      oklch(0.45 0.13 220)
+      oklch(0.7 0.14 183),
+      oklch(0.55 0.16 220)
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
