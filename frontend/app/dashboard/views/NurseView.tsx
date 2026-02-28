@@ -34,6 +34,7 @@ export default function NurseView({ userId }: { userId: string }) {
 
   const [patients, setPatients] = React.useState<WardPatient[]>([]);
   const [teamId, setTeamId] = React.useState<string | null>(null);
+  const [teamName, setTeamName] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -56,6 +57,14 @@ export default function NurseView({ userId }: { userId: string }) {
     }
 
     setTeamId(String(nurseData.team_id));
+
+    // Fetch team name
+    const { data: teamData } = await supabase
+      .from("nurse_teams")
+      .select("name")
+      .eq("id", nurseData.team_id)
+      .single();
+    if (teamData?.name) setTeamName(teamData.name);
 
     const { data } = await supabase
       .from("tickets")
@@ -111,11 +120,15 @@ export default function NurseView({ userId }: { userId: string }) {
                     </div>
                     <div>
                       <p className="font-bold text-lg">{s.shift} Shift</p>
-                      <p className="text-sm font-medium text-muted-foreground mt-0.5">{s.time}</p>
+                      <p className="text-sm font-medium text-muted-foreground mt-0.5">
+                        {s.time}
+                      </p>
                     </div>
                     {teamId && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/40 text-sm">
-                        <span className="font-semibold text-foreground/80">Team {teamId}</span>
+                        <span className="font-semibold text-foreground/80">
+                          {teamName ?? `Team ${teamId}`}
+                        </span>
                         <span className="text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md text-xs font-medium">
                           {patients.length} active
                         </span>
@@ -137,7 +150,13 @@ export default function NurseView({ userId }: { userId: string }) {
       <ViewMain className="max-w-5xl">
         <ViewHeader
           title="Ward Monitor"
-          description={teamId ? `Team ${teamId} — active inpatients` : "Loading your team…"}
+          description={
+            teamName
+              ? `${teamName} — active inpatients`
+              : teamId
+                ? `Team ${teamId} — active inpatients`
+                : "Loading your team…"
+          }
         >
           <button
             onClick={fetchMyWards}
@@ -163,7 +182,9 @@ export default function NurseView({ userId }: { userId: string }) {
               <div className="flex size-16 items-center justify-center rounded-full bg-muted/50">
                 <BedDouble className="size-8 opacity-40" />
               </div>
-              <p className="text-sm font-medium">No patients currently in ward</p>
+              <p className="text-sm font-medium">
+                No patients currently in ward
+              </p>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -186,7 +207,7 @@ export default function NurseView({ userId }: { userId: string }) {
                         className={cn(
                           "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shrink-0 shadow-sm border border-border/50",
                           STATUS_COLORS[patient.status] ??
-                          "bg-muted text-muted-foreground",
+                            "bg-muted text-muted-foreground",
                         )}
                       >
                         {patient.status?.replace(/_/g, " ")}

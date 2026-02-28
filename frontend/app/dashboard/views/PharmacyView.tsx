@@ -89,10 +89,11 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
   }
 
   async function handleComplete(group: GroupedPrescription) {
-    if (!confirm("Are you sure you want to complete this prescription?")) return;
+    if (!confirm("Are you sure you want to dispense this prescription?"))
+      return;
 
     try {
-      // 1. Mark prescriptions as dispensed
+      // Mark prescriptions as dispensed
       const { error: rxError } = await supabase
         .from("prescriptions")
         .update({ status: "dispensed" })
@@ -100,19 +101,26 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
 
       if (rxError) throw rxError;
 
-      // 2. Mark ticket as completed
-      const { error: tError } = await supabase
-        .from("tickets")
-        .update({ status: "completed" })
-        .eq("id", group.ticketId);
+      // The invoice and ticket completion are already handled by the backend
+      // when the doctor called complete-checkup. We just need to update
+      // the existing invoice medicine fee if needed.
+      const medicineFee = group.items.reduce((acc, item) => {
+        return acc + (item.catalog_medicines?.price ?? 0) * item.quantity;
+      }, 0);
 
-      if (tError) throw tError;
+      // Update existing invoice with medicine_fee (created by backend)
+      const { error: invError } = await supabase
+        .from("invoices")
+        .update({ medicine_fee: medicineFee })
+        .eq("ticket_id", group.ticketId);
 
-      alert("Prescription completed!");
+      if (invError) console.warn("Could not update invoice:", invError.message);
+
+      alert("Prescription dispensed successfully!");
       fetchPrescriptions();
     } catch (err: any) {
       console.error(err);
-      alert("Failed to complete prescription: " + err.message);
+      alert("Failed to dispense prescription: " + err.message);
     }
   }
 
@@ -173,7 +181,9 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                     <item.icon className={cn("size-4", item.color)} />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.label}
+                    </p>
                     <p className="text-xl font-bold">
                       {medicines.filter((m) => item.filter(m.stock)).length}
                     </p>
@@ -303,7 +313,9 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                       </p>
                     </div>
                     <div className="ml-auto text-right">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Ticket ID</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                        Ticket ID
+                      </p>
                       <p className="font-mono text-xs font-medium bg-muted/50 px-2 py-1 rounded-md">
                         {group.ticketId.slice(0, 8)}
                       </p>
@@ -317,7 +329,9 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                         <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5">
                           Doctor Note
                         </p>
-                        <p className="text-foreground/90 leading-relaxed font-medium">{group.doctorNote}</p>
+                        <p className="text-foreground/90 leading-relaxed font-medium">
+                          {group.doctorNote}
+                        </p>
                       </div>
                     )}
 
@@ -327,7 +341,9 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                           Patient Complaint (FO Note)
                         </p>
-                        <p className="text-muted-foreground leading-relaxed text-xs">{group.foNote}</p>
+                        <p className="text-muted-foreground leading-relaxed text-xs">
+                          {group.foNote}
+                        </p>
                       </div>
                     )}
 
@@ -346,11 +362,16 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold truncate">
-                              {item.catalog_medicines?.name ?? "Unknown medicine"}
+                              {item.catalog_medicines?.name ??
+                                "Unknown medicine"}
                             </p>
                             <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                              <span className="text-foreground bg-muted px-1.5 py-0.5 rounded mr-1.5">{item.quantity} pcs</span>
-                              {item.notes && <span className="italic">{item.notes}</span>}
+                              <span className="text-foreground bg-muted px-1.5 py-0.5 rounded mr-1.5">
+                                {item.quantity} pcs
+                              </span>
+                              {item.notes && (
+                                <span className="italic">{item.notes}</span>
+                              )}
                             </p>
                           </div>
                           <div className="text-right shrink-0">
@@ -360,7 +381,9 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
                                   item.catalog_medicines.price * item.quantity,
                                 )}
                             </p>
-                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Subtotal</p>
+                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                              Subtotal
+                            </p>
                           </div>
                         </div>
                       ))}

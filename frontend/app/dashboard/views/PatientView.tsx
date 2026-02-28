@@ -15,6 +15,8 @@ import {
   Sparkles,
   UserRound,
   RotateCcw,
+  MessageCircle,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
@@ -22,6 +24,7 @@ import { STATUS_COLORS } from "@/lib/config";
 import {
   generatePreAssessmentQuestions,
   submitPreAssessment,
+  patientChat,
   ApiError,
   type QAHistoryItem,
   type SubmitPreAssessmentResponse,
@@ -74,14 +77,30 @@ export default function PatientView({ userId }: { userId: string }) {
   const answerRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Detail Modal States
-  const [selectedVisit, setSelectedVisit] = React.useState<VisitTicket | null>(null);
-  const [visitPrescriptions, setVisitPrescriptions] = React.useState<VisitPrescription[]>([]);
+  const [selectedVisit, setSelectedVisit] = React.useState<VisitTicket | null>(
+    null,
+  );
+  const [visitPrescriptions, setVisitPrescriptions] = React.useState<
+    VisitPrescription[]
+  >([]);
   const [visitQA, setVisitQA] = React.useState<QAHistoryItem[]>([]);
   const [loadingDetail, setLoadingDetail] = React.useState(false);
+
+  // Chat state
+  const [chatTickets, setChatTickets] = React.useState<VisitTicket[]>([]);
+  const [chatTicketId, setChatTicketId] = React.useState<string | null>(null);
+  const [chatMessages, setChatMessages] = React.useState<
+    { role: "user" | "bot"; content: string }[]
+  >([]);
+  const [chatInput, setChatInput] = React.useState("");
+  const [chatLoading, setChatLoading] = React.useState(false);
+  const [chatError, setChatError] = React.useState<string | null>(null);
+  const chatEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (activeTab === "visits") fetchVisits();
     else if (activeTab === "billing") fetchInvoices();
+    else if (activeTab === "chat") fetchChatTickets();
   }, [activeTab, userId]);
 
   React.useEffect(() => {
@@ -115,6 +134,56 @@ export default function PatientView({ userId }: { userId: string }) {
       .order("issued_at", { ascending: false });
     setInvoices((data as unknown as PatientInvoice[]) ?? []);
     setLoading(false);
+  }
+
+  async function fetchChatTickets() {
+    const { data } = await supabase
+      .from("tickets")
+      .select(
+        "id, fo_note, status, created_at, doctor_note, doctor_id, doctor_profiles:profiles!doctor_id(name)",
+      )
+      .eq("patient_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const tickets = (data as unknown as VisitTicket[]) ?? [];
+    setChatTickets(tickets);
+    // Auto-select the most recent ticket with a doctor note
+    const withNote = tickets.find((t) => t.doctor_note);
+    if (withNote && !chatTicketId) {
+      setChatTicketId(withNote.id);
+    } else if (tickets.length > 0 && !chatTicketId) {
+      setChatTicketId(tickets[0].id);
+    }
+  }
+
+  async function handleSendChat() {
+    if (!chatInput.trim() || !chatTicketId || chatLoading) return;
+    const msg = chatInput.trim();
+    setChatInput("");
+    setChatError(null);
+    setChatMessages((prev) => [...prev, { role: "user", content: msg }]);
+    setChatLoading(true);
+    try {
+      const res = await patientChat(chatTicketId, msg);
+      if (res.status === "error") {
+        setChatError(res.message ?? "Chat error occurred.");
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "bot", content: res.reply ?? "No response from AI." },
+        ]);
+      }
+    } catch (err) {
+      setChatError(
+        err instanceof ApiError ? err.message : "Failed to reach AI service.",
+      );
+    } finally {
+      setChatLoading(false);
+      setTimeout(
+        () => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+        100,
+      );
+    }
   }
 
   async function openVisitDetail(visit: VisitTicket) {
@@ -226,6 +295,144 @@ export default function PatientView({ userId }: { userId: string }) {
     setResult(null);
   }
 
+  // ──────────────────────── CHAT WITH DOCTOR ────────────────────
+  if (activeTab === "chat") {
+    const selectedChatTicket = chatTickets.find((t) => t.id === chatTicketId);
+    return (
+      <ViewLayout>
+        <ViewMain className="max-w-2xl">
+          <ViewHeader
+            title="Chat with Doctor AI"
+            description="Ask questions about your diagnosis, treatment, or medication based on your recent visit."
+          />
+
+          {/* Ticket selector */}
+          <ViewContentCard>
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Select Visit to Ask About
+              </p>
+              {chatTickets.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  No visits found. Please complete a health check first.
+                </p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {chatTickets.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setChatTicketId(t.id);
+                        setChatMessages([]);
+                        setChatError(null);
+                      }}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all",
+                        chatTicketId === t.id
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border/40 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                      )}
+                    >
+                      <span className="font-mono opacity-60">
+                        #{t.id.slice(0, 6)}
+                      </span>
+                      <span className="line-clamp-1 max-w-36">{t.fo_note}</span>
+                      {t.doctor_note && (
+                        <span className="shrink-0 rounded-full bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 text-[9px] font-bold uppercase">
+                          Diagnosed
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Chat messages */}
+            <div className="mt-2 flex flex-col gap-3 min-h-64 max-h-96 overflow-y-auto rounded-xl border border-border/30 bg-muted/10 p-4">
+              {chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground py-8">
+                  <Bot className="size-10 opacity-20" />
+                  <p className="text-sm text-center max-w-xs">
+                    {chatTicketId
+                      ? selectedChatTicket?.doctor_note
+                        ? "Ask about your diagnosis, medication, or treatment plan."
+                        : "Your doctor hasn't completed the examination yet. You may still ask general questions."
+                      : "Select a visit above to start chatting."}
+                  </p>
+                </div>
+              ) : (
+                chatMessages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "rounded-xl px-4 py-3 text-sm max-w-[85%] shadow-sm",
+                      msg.role === "user"
+                        ? "self-end bg-primary text-primary-foreground rounded-br-sm"
+                        : "self-start bg-card border border-border/40 rounded-bl-sm",
+                    )}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-60">
+                      {msg.role === "user" ? "You" : "AI Assistant"}
+                    </p>
+                    <p className="leading-relaxed whitespace-pre-wrap">
+                      {msg.content}
+                    </p>
+                  </div>
+                ))
+              )}
+              {chatLoading && (
+                <div className="self-start flex items-center gap-2 rounded-xl border border-border/40 bg-card px-4 py-3 text-sm shadow-sm">
+                  <Loader2 className="size-4 animate-spin text-primary" />
+                  <span className="text-muted-foreground">Thinking...</span>
+                </div>
+              )}
+              {chatError && (
+                <p className="self-start text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                  {chatError}
+                </p>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Chat input */}
+            <div className="flex gap-2 mt-2">
+              <textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendChat();
+                  }
+                }}
+                placeholder={
+                  chatTicketId
+                    ? "Ask about your diagnosis, medication, or how to take your medicine..."
+                    : "Select a visit first..."
+                }
+                disabled={!chatTicketId || chatLoading}
+                rows={2}
+                className="flex-1 resize-none rounded-xl border border-border/50 bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all disabled:opacity-50"
+              />
+              <button
+                onClick={handleSendChat}
+                disabled={!chatInput.trim() || !chatTicketId || chatLoading}
+                className="flex size-12 shrink-0 self-end items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
+              >
+                {chatLoading ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <Send className="size-5" />
+                )}
+              </button>
+            </div>
+          </ViewContentCard>
+        </ViewMain>
+      </ViewLayout>
+    );
+  }
+
   // ──────────────────────── HEALTH CHECK (Typeform-style) ────────────────────
   if (!activeTab || activeTab === "pre-assessment") {
     return (
@@ -245,8 +452,8 @@ export default function PatientView({ userId }: { userId: string }) {
                   What do you feel today?
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Describe your symptoms or health concerns. Our AI will ask a few
-                  follow-up questions to better understand your condition.
+                  Describe your symptoms or health concerns. Our AI will ask a
+                  few follow-up questions to better understand your condition.
                 </p>
               </div>
 
@@ -437,8 +644,8 @@ export default function PatientView({ userId }: { userId: string }) {
                   <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/15 px-3 py-2.5 text-sm">
                     <CheckCircle2 className="size-4 text-primary shrink-0" />
                     <span>
-                      A doctor has been recommended for your case. Please visit the
-                      hospital for further examination.
+                      A doctor has been recommended for your case. Please visit
+                      the hospital for further examination.
                     </span>
                   </div>
                 )}
@@ -533,19 +740,25 @@ export default function PatientView({ userId }: { userId: string }) {
 
                       <div className="grid grid-cols-3 gap-3 p-4 text-sm border rounded-xl border-border/30 bg-muted/20 shadow-inner">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Doctor</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                            Doctor
+                          </p>
                           <p className="font-medium">
                             {formatCurrency(inv.doctor_fee ?? 0)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Medicine</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                            Medicine
+                          </p>
                           <p className="font-medium">
                             {formatCurrency(inv.medicine_fee ?? 0)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Room</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                            Room
+                          </p>
                           <p className="font-medium">
                             {formatCurrency(inv.room_fee ?? 0)}
                           </p>
@@ -553,7 +766,9 @@ export default function PatientView({ userId }: { userId: string }) {
                       </div>
 
                       <div className="flex items-center justify-between text-sm pt-2 border-t border-border/30 mt-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Summary</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Total Summary
+                        </span>
                         <span className="text-lg font-black text-primary">
                           {formatCurrency(total)}
                         </span>
@@ -619,7 +834,7 @@ export default function PatientView({ userId }: { userId: string }) {
                         className={cn(
                           "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm border border-border/50",
                           STATUS_COLORS[visit.status] ??
-                          "bg-muted text-muted-foreground",
+                            "bg-muted text-muted-foreground",
                         )}
                       >
                         {visit.status?.replace(/_/g, " ")}
@@ -666,7 +881,10 @@ export default function PatientView({ userId }: { userId: string }) {
               <span
                 className={cn(
                   "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm border border-border/50",
-                  selectedVisit ? (STATUS_COLORS[selectedVisit.status] ?? "bg-muted text-muted-foreground") : "",
+                  selectedVisit
+                    ? (STATUS_COLORS[selectedVisit.status] ??
+                        "bg-muted text-muted-foreground")
+                    : "",
                 )}
               >
                 {selectedVisit?.status?.replace(/_/g, " ")}
@@ -700,7 +918,9 @@ export default function PatientView({ userId }: { userId: string }) {
                     <p className="font-bold text-primary text-[10px] uppercase tracking-wider mb-2">
                       Diagnosis & Treatment
                     </p>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{selectedVisit.doctor_note}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {selectedVisit.doctor_note}
+                    </p>
                   </div>
                 )}
 
@@ -720,19 +940,28 @@ export default function PatientView({ userId }: { userId: string }) {
                         </div>
                         <div className="rounded-xl border border-border/40 divide-y divide-border/30 shadow-sm overflow-hidden bg-card">
                           {visitPrescriptions.map((rx, i) => (
-                            <div key={i} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-muted/10 transition-colors">
+                            <div
+                              key={i}
+                              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-muted/10 transition-colors"
+                            >
                               <div>
                                 <p className="font-bold">{rx.name}</p>
                                 {rx.notes && (
-                                  <p className="text-xs font-medium text-muted-foreground mt-0.5">{rx.notes}</p>
+                                  <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                                    {rx.notes}
+                                  </p>
                                 )}
                               </div>
                               <div className="text-right shrink-0 ml-4">
                                 <p className="text-xs font-medium text-muted-foreground border border-border/50 bg-muted/30 px-2 py-0.5 rounded-md inline-block mb-1">
-                                  {rx.quantity}x @ Rp {rx.price.toLocaleString("id-ID")}
+                                  {rx.quantity}x @ Rp{" "}
+                                  {rx.price.toLocaleString("id-ID")}
                                 </p>
                                 <p className="font-black text-primary">
-                                  Rp {(rx.price * rx.quantity).toLocaleString("id-ID")}
+                                  Rp{" "}
+                                  {(rx.price * rx.quantity).toLocaleString(
+                                    "id-ID",
+                                  )}
                                 </p>
                               </div>
                             </div>
@@ -760,13 +989,19 @@ export default function PatientView({ userId }: { userId: string }) {
                                   : "bg-card mr-6 border-border/40 rounded-tl-sm",
                               )}
                             >
-                              <p className={cn(
-                                "text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70",
-                                item.role === "user" ? "text-primary-foreground/90" : "text-muted-foreground"
-                              )}>
+                              <p
+                                className={cn(
+                                  "text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70",
+                                  item.role === "user"
+                                    ? "text-primary-foreground/90"
+                                    : "text-muted-foreground",
+                                )}
+                              >
                                 {item.role === "user" ? "You" : "AI Assistant"}
                               </p>
-                              <p className="leading-relaxed font-medium">{item.content}</p>
+                              <p className="leading-relaxed font-medium">
+                                {item.content}
+                              </p>
                             </div>
                           ))}
                         </div>

@@ -4,7 +4,7 @@ import { QuoteIcon } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "I submitted my own ticket from home before I even arrived at the clinic. By the time I walked in, the doctor already had my symptoms and was ready for me. No forms, no waiting at the front desk.",
+      "I used the AI Health Check from home before my appointment. It told me I needed a cardiologist, and it was right. The doctor already had my full pre-assessment when I arrived. Fastest clinic visit I've ever had.",
     name: "Siti Rahma",
     role: "Patient",
     location: "Jakarta",
@@ -12,7 +12,7 @@ const testimonials = [
   },
   {
     quote:
-      "The AI\'s specialist recommendation is remarkably accurate. It surfaces the right doctor for each case before I even open the ticket. My consultations are more focused and my notes are instantly visible to the nurse and pharmacist.",
+      "The AI pre-assessment is remarkably accurate. I receive the patient's symptoms, severity, and clinical notes before the consultation even begins. My time is spent on diagnosis, not data entry.",
     name: "Dr. Andi Prasetyo",
     role: "Specialist Doctor",
     location: "Surabaya",
@@ -20,7 +20,7 @@ const testimonials = [
   },
   {
     quote:
-      "Some patients arrive with a ticket already open from home; others we create one for on the spot. Either way the AI does the triage instantly and the queue moves twice as fast as before.",
+      "Some patients arrive with an AI health check already done from home; others we guide through it at the front desk. Either way the triage is instant and the queue moves twice as fast as before.",
     name: "Dewi Kusuma",
     role: "Front Office Staff",
     location: "Bandung",
@@ -28,7 +28,7 @@ const testimonials = [
   },
   {
     quote:
-      "Digital prescriptions mean I receive the exact medication list the moment the doctor finalises the ticket. No illegible handwriting, no back-and-forth calls — just accurate, fast dispensing.",
+      "Digital prescriptions arrive the moment the doctor finalises the ticket. No illegible handwriting, no back-and-forth calls. Just accurate, fast dispensing every time.",
     name: "Budi Santoso",
     role: "Pharmacist",
     location: "Yogyakarta",
@@ -53,12 +53,12 @@ export function TestimonialsSection() {
             id="testimonials-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Trusted by every role in{" "}
-            <span className="text-gradient-primary">the care journey</span>
+            Trusted by patients and{" "}
+            <span className="text-gradient-primary">care teams alike</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            From front office to pharmacy, here&apos;s how Medisync fits into
-            real healthcare workflows.
+            From patient self-assessment to pharmacy, here&apos;s how Medisync
+            fits into real healthcare workflows.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export function TestimonialsSection() {
                   strokeWidth={1.5}
                 />
                 <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
-                  &ldquo;{t.quote}&rdquo;
+                  &quot;{t.quote}&quot;
                 </p>
                 <div className="flex items-center gap-3 pt-2 border-t border-border/60">
                   <div className="flex items-center justify-center text-sm font-semibold text-white rounded-full h-9 w-9 shrink-0 gradient-primary">

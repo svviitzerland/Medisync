@@ -43,12 +43,8 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
     { label: "Staff Data", icon: Users, tab: "staff" },
     { label: "Finance", icon: DollarSign, tab: "finance" },
   ],
-  fo: [
-    { label: "Queue & Registration", icon: ClipboardList, tab: null },
-  ],
-  doctor_specialist: [
-    { label: "Patient List", icon: Stethoscope, tab: null },
-  ],
+  fo: [{ label: "Queue & Registration", icon: ClipboardList, tab: null }],
+  doctor_specialist: [{ label: "Patient List", icon: Stethoscope, tab: null }],
   nurse: [
     { label: "Ward Monitor", icon: BedDouble, tab: null },
     { label: "Shift Schedule", icon: Clock, tab: "shift" },
@@ -59,6 +55,7 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
   ],
   patient: [
     { label: "Health Check", icon: ClipboardCheck, tab: null },
+    { label: "Chat with Doctor", icon: MessageCircle, tab: "chat" },
     { label: "Medical History", icon: Activity, tab: "visits" },
     { label: "Billing History", icon: CreditCard, tab: "billing" },
   ],
@@ -194,12 +191,17 @@ export default function DashboardShell({
         {/* User profile */}
         <div className="border-b border-border/30 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-muted to-muted/50 text-sm font-bold uppercase text-foreground shadow-sm ring-1 ring-border/50">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-muted to-muted/50 text-sm font-bold uppercase text-foreground shadow-sm ring-1 ring-border/50">
               {user.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{user.name}</p>
-              <p className={cn("text-xs font-medium tracking-wide mt-0.5", roleColors[user.role])}>
+              <p
+                className={cn(
+                  "text-xs font-medium tracking-wide mt-0.5",
+                  roleColors[user.role],
+                )}
+              >
                 {roleLabels[user.role]}
               </p>
             </div>
@@ -226,10 +228,14 @@ export default function DashboardShell({
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 )}
               >
-                <item.icon className={cn(
-                  "size-4 shrink-0 transition-colors duration-200",
-                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                )} />
+                <item.icon
+                  className={cn(
+                    "size-4 shrink-0 transition-colors duration-200",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
                 <span className="flex-1">{item.label}</span>
                 {isActive && <ChevronRight className="size-3.5 opacity-60" />}
               </Link>
@@ -254,7 +260,7 @@ export default function DashboardShell({
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden relative z-10 w-full min-w-0">
         {/* Topbar */}
-        <header className="flex h-[72px] shrink-0 items-center justify-between gap-4 border-b border-border/20 bg-background/50 px-4 sm:px-8 backdrop-blur-xl">
+        <header className="flex h-18 shrink-0 items-center justify-between gap-4 border-b border-border/20 bg-background/50 px-4 sm:px-8 backdrop-blur-xl">
           <div className="flex items-center gap-4">
             <button
               className="flex size-9 items-center justify-center rounded-lg border border-border/40 bg-card text-muted-foreground hover:text-foreground lg:hidden shadow-sm"
@@ -278,9 +284,7 @@ export default function DashboardShell({
 
         {/* Page content with max-width container */}
         <main className="flex-1 overflow-y-auto scrollbar-none">
-          <div className="mx-auto max-w-[1600px] p-4 sm:p-8">
-            {children}
-          </div>
+          <div className="mx-auto max-w-400 p-4 sm:p-8">{children}</div>
         </main>
       </div>
     </div>

@@ -10,15 +10,15 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
-  ChevronDown,
-  ChevronUp,
   User,
-  X,
   FileText,
   Stethoscope,
   UserCheck,
   BedDouble,
   ShieldAlert,
+  Hash,
+  ClipboardList,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
@@ -55,17 +55,20 @@ interface PatientInfo {
 interface TicketRecord {
   id: string;
   fo_note: string;
+  doctor_note: string | null;
   status: string;
+  severity_level: string | null;
+  room_id: string | null;
+  ai_reasoning: string | null;
+  nurse_team_id: string | null;
   created_at: string;
-  severity_level?: string;
-  profiles: { name: string; nik: string } | null;
-  doctor: { name: string; specialization: string } | null;
-  rooms: { name: string; type: string } | null;
+  profiles: { name: string; nik: string; age?: number } | null;
+  doctor_profiles: { name: string; specialization?: string } | null;
 }
 
 export default function FOView({ userId: _userId }: { userId: string }) {
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get("tab");
+  const _activeTab = searchParams.get("tab");
   // NIK Search
   const [nikSearch, setNikSearch] = React.useState("");
   const [patientInfo, setPatientInfo] = React.useState<PatientInfo | null>(
@@ -249,16 +252,12 @@ export default function FOView({ userId: _userId }: { userId: string }) {
     setLoadingTickets(true);
     const { data } = await supabase
       .from("tickets")
-      .select(`
-        id, fo_note, status, created_at, severity_level, 
-        profiles!patient_id(name, nik),
-        doctor:profiles!doctor_id(name, specialization),
-        rooms:rooms!room_id(name, type)
-      `)
+      .select(
+        "id, fo_note, doctor_note, status, severity_level, room_id, ai_reasoning, nurse_team_id, created_at, " +
+          "profiles!patient_id(name, nik, age), doctor_profiles:profiles!doctor_id(name, specialization)",
+      )
       .order("created_at", { ascending: false })
-      .limit(10);
-
-    // We typecast here to match TicketRecord 
+      .limit(20);
     setTickets((data as unknown as TicketRecord[]) ?? []);
     setLoadingTickets(false);
   }
@@ -520,7 +519,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
           )}
 
           {/* Step 3: Create Ticket */}
-          {patientInfo && foNote.trim() && analysis && (
+          {patientInfo && foNote.trim() && (
             <ViewSection step="3" title="Create Examination Ticket">
               {createSuccess && (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-400">
@@ -583,7 +582,7 @@ export default function FOView({ userId: _userId }: { userId: string }) {
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[104px] border animate-pulse rounded-2xl border-border/30 bg-card/40"
+                  className="border h-26 animate-pulse rounded-2xl border-border/30 bg-card/40"
                 />
               ))}
             </div>
@@ -604,6 +603,17 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                     <p className="pr-2 font-semibold truncate text-foreground">
                       {ticket.profiles?.name ?? "Unknown Patient"}
                     </p>
+                    {ticket.severity_level && (
+                      <span
+                        className={cn(
+                          "shrink-0 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                          SEVERITY_COLORS[ticket.severity_level] ??
+                            "bg-muted text-muted-foreground border-border",
+                        )}
+                      >
+                        {ticket.severity_level}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1">
                     <p className="text-sm text-muted-foreground line-clamp-2">
@@ -633,37 +643,41 @@ export default function FOView({ userId: _userId }: { userId: string }) {
 
       {/* Ticket Details Modal overlays the whole viewport */}
       <ViewModal
-        title="Ticket Info"
-        description="Details and current status"
+        title="Ticket Details"
+        description="Full ticket information and current status"
         isOpen={!!selectedTicket}
         onClose={() => setSelectedTicket(null)}
         icon={<Ticket className="size-6" />}
       >
         {selectedTicket && (
           <>
-            <div className="flex flex-col gap-1 p-4 border rounded-2xl bg-muted/30 border-border/30">
-              <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                Patient Details
-              </p>
-              <p className="text-lg font-semibold text-foreground">
-                {selectedTicket?.profiles?.name ?? "Unknown Patient"}
-              </p>
-              <p className="text-sm font-medium text-muted-foreground">
-                NIK: {selectedTicket?.profiles?.nik ?? "No NIK"}
+            {/* Ticket ID */}
+            <div className="flex items-center gap-2 px-3 py-2 border rounded-xl bg-muted/30 border-border/30">
+              <Hash className="size-3.5 text-muted-foreground shrink-0" />
+              <p className="font-mono text-xs truncate text-muted-foreground">
+                {selectedTicket.id}
               </p>
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* Patient Details */}
+            <div className="flex flex-col gap-1 p-4 border rounded-2xl bg-muted/30 border-border/30">
               <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                Complaint / Notes
+                Patient
               </p>
-              <div className="p-4 text-sm leading-relaxed border shadow-inner bg-background border-border/50 rounded-2xl text-foreground/90">
-                {selectedTicket?.fo_note}
+              <p className="text-lg font-semibold text-foreground">
+                {selectedTicket.profiles?.name ?? "Unknown Patient"}
+              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-muted-foreground">
+                <span>NIK: {selectedTicket.profiles?.nik ?? "—"}</span>
+                {selectedTicket.profiles?.age != null && (
+                  <span>Age: {selectedTicket.profiles.age}</span>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
+            {/* Status + Severity + Care Type */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
                 <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
                   Care Type
                 </p>
@@ -706,30 +720,139 @@ export default function FOView({ userId: _userId }: { userId: string }) {
                 <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
                   Status
                 </p>
-                <div>
+                <span
+                  className={cn(
+                    "inline-flex w-fit rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase shadow-sm",
+                    STATUS_COLORS[selectedTicket.status] ??
+                      "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {selectedTicket.status?.replace(/_/g, " ")}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Severity
+                </p>
+                {selectedTicket.severity_level ? (
                   <span
                     className={cn(
-                      "inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase shadow-sm border",
-                      selectedTicket?.status &&
-                        STATUS_COLORS[selectedTicket.status]
-                        ? STATUS_COLORS[selectedTicket.status]
-                        : "bg-muted text-muted-foreground border-border",
+                      "inline-flex w-fit rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase",
+                      SEVERITY_COLORS[selectedTicket.severity_level] ??
+                        "bg-muted text-muted-foreground border-border",
                     )}
                   >
-                    {selectedTicket?.status?.replace(/_/g, " ")}
+                    {selectedTicket.severity_level}
                   </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
+                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Care Type
+                </p>
+                <span
+                  className={cn(
+                    "text-xs font-semibold",
+                    selectedTicket.room_id
+                      ? "text-rose-400"
+                      : "text-emerald-400",
+                  )}
+                >
+                  {selectedTicket.room_id ? "Inpatient" : "Outpatient"}
+                </span>
+              </div>
+            </div>
+
+            {/* Assigned Doctor + Nurse Team */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
+                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  <Stethoscope className="size-3.5" />
+                  Doctor
+                </div>
+                {selectedTicket.doctor_profiles ? (
+                  <>
+                    <p className="text-sm font-semibold text-foreground">
+                      {selectedTicket.doctor_profiles.name}
+                    </p>
+                    {selectedTicket.doctor_profiles.specialization && (
+                      <p className="text-xs text-muted-foreground">
+                        {selectedTicket.doctor_profiles.specialization}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    Not assigned
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/20 border border-border/30">
+                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  <Users className="size-3.5" />
+                  Nurse Team
+                </div>
+                {selectedTicket.nurse_team_id ? (
+                  <p className="text-sm font-semibold text-foreground">
+                    {selectedTicket.nurse_team_id}
+                  </p>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    Not assigned
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* FO Complaint */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                <ClipboardList className="size-3.5" />
+                Front Office Complaint
+              </div>
+              <div className="p-4 text-sm leading-relaxed whitespace-pre-wrap border shadow-inner bg-background border-border/50 rounded-2xl text-foreground/90">
+                {selectedTicket.fo_note}
+              </div>
+            </div>
+
+            {/* AI Reasoning */}
+            {selectedTicket.ai_reasoning && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  <Brain className="size-3.5" />
+                  AI Reasoning
+                </div>
+                <div className="p-4 text-sm leading-relaxed whitespace-pre-wrap border border-primary/20 bg-primary/5 rounded-2xl text-foreground/90">
+                  {selectedTicket.ai_reasoning}
                 </div>
               </div>
-              <div className="flex flex-col justify-between gap-1.5 p-4 rounded-2xl bg-muted/20 border border-border/30">
-                <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                  Ticket Created
-                </p>
-                <p className="text-sm font-medium text-foreground">
-                  {selectedTicket?.created_at
-                    ? formatDate(selectedTicket.created_at)
-                    : ""}
-                </p>
+            )}
+
+            {/* Doctor Note */}
+            {selectedTicket.doctor_note && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  <FileText className="size-3.5" />
+                  Doctor&apos;s Note
+                </div>
+                <div className="p-4 text-sm leading-relaxed whitespace-pre-wrap border border-sky-500/20 bg-sky-500/5 rounded-2xl text-foreground/90">
+                  {selectedTicket.doctor_note}
+                </div>
               </div>
+            )}
+
+            {/* Registered date */}
+            <div className="flex items-center justify-between px-3 py-2 border rounded-xl bg-muted/20 border-border/30">
+              <span className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                Registered
+              </span>
+              <span className="text-xs font-medium text-foreground">
+                {selectedTicket.created_at
+                  ? formatDate(selectedTicket.created_at)
+                  : "—"}
+              </span>
             </div>
           </>
         )}

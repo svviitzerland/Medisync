@@ -33,9 +33,12 @@ export interface Ticket {
   doctor_note: string | null;
   status: TicketStatus;
   created_at: string;
+  severity_level?: string | null;
+  ai_reasoning?: string | null;
+  room_id?: number | null;
   nurse_team_id?: string | null;
-  profiles?: PatientProfile | null;           // patient info via patient_id
-  doctor_profiles?: DoctorProfile | null;     // doctor info via doctor_id
+  profiles?: PatientProfile | null; // patient info via patient_id
+  doctor_profiles?: DoctorProfile | null; // doctor info via doctor_id
 }
 
 // ─── AI Types ────────────────────────────────────────────────────────────────
