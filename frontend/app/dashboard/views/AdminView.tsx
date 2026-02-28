@@ -15,6 +15,12 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 import { ROLE_COLORS, ROLE_LABELS } from "@/lib/config";
+import {
+  ViewLayout,
+  ViewMain,
+  ViewHeader,
+  ViewContentCard,
+} from "@/components/dashboard/view-layout";
 
 import { supabase } from "@/lib/supabase";
 import type { AdminStats, StaffMember, Invoice } from "@/types";
@@ -97,143 +103,149 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
   // ---- OVERVIEW TAB ----
   if (activeTab === "overview" || activeTab === null) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold">Hospital Overview</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Real-time hospital metrics and statistics
-          </p>
-        </div>
+      <ViewLayout>
+        <ViewMain>
+          <ViewHeader
+            title="Hospital Overview"
+            description="Real-time hospital metrics and statistics"
+          />
 
-        {loading || !stats ? (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border/50 bg-card p-5 animate-pulse"
-              >
-                <div className="h-4 w-24 rounded bg-muted/60" />
-                <div className="mt-3 h-8 w-16 rounded bg-muted/40" />
+          <ViewContentCard>
+            {loading || !stats ? (
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-border/50 bg-muted/20 p-6 animate-pulse shadow-sm"
+                  >
+                    <div className="h-4 w-24 rounded-full bg-muted/60 mb-4" />
+                    <div className="h-10 w-20 rounded-lg bg-muted/40" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard
-              icon={Users}
-              label="Total Patients"
-              value={stats.totalPatients.toLocaleString()}
-              color="text-teal-400"
-              bg="bg-teal-400/10"
-            />
-            <StatCard
-              icon={Stethoscope}
-              label="Total Doctors"
-              value={stats.totalDoctors.toLocaleString()}
-              color="text-sky-400"
-              bg="bg-sky-400/10"
-            />
-            <StatCard
-              icon={Ticket}
-              label="Total Tickets"
-              value={stats.totalTickets.toLocaleString()}
-              color="text-violet-400"
-              bg="bg-violet-400/10"
-            />
-            <StatCard
-              icon={DollarSign}
-              label="Total Revenue"
-              value={formatCurrency(stats.totalRevenue)}
-              color="text-emerald-400"
-              bg="bg-emerald-400/10"
-            />
-          </div>
-        )}
-      </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                <StatCard
+                  icon={Users}
+                  label="Total Patients"
+                  value={stats.totalPatients.toLocaleString()}
+                  color="text-teal-500"
+                  bg="bg-teal-500/10 border border-teal-500/20"
+                />
+                <StatCard
+                  icon={Stethoscope}
+                  label="Total Doctors"
+                  value={stats.totalDoctors.toLocaleString()}
+                  color="text-sky-500"
+                  bg="bg-sky-500/10 border border-sky-500/20"
+                />
+                <StatCard
+                  icon={Ticket}
+                  label="Total Tickets"
+                  value={stats.totalTickets.toLocaleString()}
+                  color="text-violet-500"
+                  bg="bg-violet-500/10 border border-violet-500/20"
+                />
+                <StatCard
+                  icon={DollarSign}
+                  label="Total Revenue"
+                  value={formatCurrency(stats.totalRevenue)}
+                  color="text-emerald-500"
+                  bg="bg-emerald-500/10 border border-emerald-500/20"
+                />
+              </div>
+            )}
+          </ViewContentCard>
+        </ViewMain>
+      </ViewLayout>
     );
   }
 
   // ---- STAFF TAB ----
   if (activeTab === "staff") {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">Staff Directory</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              All hospital staff members
-            </p>
-          </div>
-          <button
-            onClick={fetchStaff}
-            className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+      <ViewLayout>
+        <ViewMain>
+          <ViewHeader
+            title="Staff Directory"
+            description="All hospital staff members"
           >
-            <RefreshCw className="size-3.5" />
-            Refresh
-          </button>
-        </div>
+            <button
+              onClick={fetchStaff}
+              className="flex items-center gap-2 rounded-lg border border-border/50 bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted/50 transition-colors shadow-sm"
+            >
+              <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+              Refresh
+            </button>
+          </ViewHeader>
 
-        {loading ? (
-          <TableSkeleton cols={5} rows={6} />
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-border/50">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 bg-muted/30">
-                  <Th>Name</Th>
-                  <Th>Role</Th>
-                  <Th>Email</Th>
-                  <Th>Phone</Th>
-                  <Th>Joined</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="py-10 text-center text-muted-foreground"
-                    >
-                      No staff members found
-                    </td>
-                  </tr>
-                ) : (
-                  staff.map((member) => (
-                    <tr
-                      key={member.id}
-                      className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
-                    >
-                      <td className="px-4 py-3 font-medium">{member.name}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-                            ROLE_COLORS[member.role] ??
-                            "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {ROLE_LABELS[member.role] ?? member.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {member.email}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {member.phone ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {member.created_at
-                          ? formatDateShort(member.created_at)
-                          : "—"}
-                      </td>
+          <ViewContentCard>
+            {loading ? (
+              <TableSkeleton cols={5} rows={6} />
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border/50">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 bg-muted/30">
+                      <Th>Name</Th>
+                      <Th>Role</Th>
+                      <Th>Email</Th>
+                      <Th>Phone</Th>
+                      <Th>Joined</Th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                  </thead>
+                  <tbody>
+                    {staff.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="py-12 text-center text-muted-foreground"
+                        >
+                          <div className="flex flex-col items-center gap-3">
+                            <Users className="size-8 opacity-30" />
+                            <p>No staff members found</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      staff.map((member) => (
+                        <tr
+                          key={member.id}
+                          className="border-b border-border/30 last:border-0 hover:bg-muted/10 transition-colors"
+                        >
+                          <td className="px-5 py-4 font-bold text-foreground">{member.name}</td>
+                          <td className="px-5 py-4">
+                            <span
+                              className={cn(
+                                "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm border border-border/50",
+                                ROLE_COLORS[member.role] ??
+                                "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {ROLE_LABELS[member.role] ?? member.role}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground font-medium">
+                            {member.email}
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground font-mono text-xs">
+                            {member.phone ?? "—"}
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground font-medium text-xs">
+                            {member.created_at
+                              ? formatDateShort(member.created_at)
+                              : "—"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ViewContentCard>
+        </ViewMain>
+      </ViewLayout>
     );
   }
 
@@ -251,110 +263,114 @@ export default function AdminView({ userId: _userId }: { userId: string }) {
     const unpaidCount = invoices.filter((i) => i.status === "unpaid").length;
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">Finance</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Revenue overview and invoice records
-            </p>
-          </div>
-          <button
-            onClick={fetchFinance}
-            className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+      <ViewLayout>
+        <ViewMain>
+          <ViewHeader
+            title="Finance"
+            description="Revenue overview and invoice records"
           >
-            <RefreshCw className="size-3.5" />
-            Refresh
-          </button>
-        </div>
+            <button
+              onClick={fetchFinance}
+              className="flex items-center gap-2 rounded-lg border border-border/50 bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted/50 transition-colors shadow-sm"
+            >
+              <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+              Refresh
+            </button>
+          </ViewHeader>
 
-        {!loading && (
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard
-              icon={TrendingUp}
-              label="Total Revenue"
-              value={formatCurrency(totalRevenue)}
-              color="text-emerald-400"
-              bg="bg-emerald-400/10"
-            />
-            <StatCard
-              icon={CheckCircle2}
-              label="Paid Invoices"
-              value={paidCount.toString()}
-              color="text-sky-400"
-              bg="bg-sky-400/10"
-            />
-            <StatCard
-              icon={XCircle}
-              label="Unpaid Invoices"
-              value={unpaidCount.toString()}
-              color="text-rose-400"
-              bg="bg-rose-400/10"
-            />
-          </div>
-        )}
+          <ViewContentCard>
+            {!loading && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <StatCard
+                  icon={TrendingUp}
+                  label="Total Revenue"
+                  value={formatCurrency(totalRevenue)}
+                  color="text-emerald-500"
+                  bg="bg-emerald-500/10 border border-emerald-500/20"
+                />
+                <StatCard
+                  icon={CheckCircle2}
+                  label="Paid Invoices"
+                  value={paidCount.toString()}
+                  color="text-sky-500"
+                  bg="bg-sky-500/10 border border-sky-500/20"
+                />
+                <StatCard
+                  icon={XCircle}
+                  label="Unpaid Invoices"
+                  value={unpaidCount.toString()}
+                  color="text-rose-500"
+                  bg="bg-rose-500/10 border border-rose-500/20"
+                />
+              </div>
+            )}
 
-        {loading ? (
-          <TableSkeleton cols={7} rows={8} />
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-border/50">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 bg-muted/30">
-                  <Th>Invoice</Th>
-                  <Th>Patient</Th>
-                  <Th>Doctor Fee</Th>
-                  <Th>Medicine Fee</Th>
-                  <Th>Room Fee</Th>
-                  <Th>Status</Th>
-                  <Th>Date</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="py-10 text-center text-muted-foreground"
-                    >
-                      No invoices found
-                    </td>
-                  </tr>
-                ) : (
-                  invoices.map((inv) => (
-                    <tr
-                      key={inv.id}
-                      className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
-                    >
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        #{inv.id.slice(0, 8)}
-                      </td>
-                      <td className="px-4 py-3 font-medium">
-                        {inv.tickets?.profiles?.name ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatCurrency(inv.doctor_fee ?? 0)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatCurrency(inv.medicine_fee ?? 0)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatCurrency(inv.room_fee ?? 0)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={inv.status} />
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {inv.issued_at ? formatDateShort(inv.issued_at) : "—"}
-                      </td>
+            {loading ? (
+              <TableSkeleton cols={7} rows={8} />
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border/50">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 bg-muted/30">
+                      <Th>Invoice</Th>
+                      <Th>Patient</Th>
+                      <Th>Doctor Fee</Th>
+                      <Th>Medicine Fee</Th>
+                      <Th>Room Fee</Th>
+                      <Th>Status</Th>
+                      <Th>Date</Th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                  </thead>
+                  <tbody>
+                    {invoices.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="py-12 text-center text-muted-foreground"
+                        >
+                          <div className="flex flex-col items-center gap-3">
+                            <DollarSign className="size-8 opacity-30" />
+                            <p>No invoices found</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      invoices.map((inv) => (
+                        <tr
+                          key={inv.id}
+                          className="border-b border-border/30 last:border-0 hover:bg-muted/10 transition-colors"
+                        >
+                          <td className="px-5 py-4 font-mono text-[10px] font-bold text-muted-foreground uppercase">
+                            #{inv.id.slice(0, 8)}
+                          </td>
+                          <td className="px-5 py-4 font-bold text-foreground">
+                            {inv.tickets?.profiles?.name ?? "—"}
+                          </td>
+                          <td className="px-5 py-4 font-medium font-mono text-muted-foreground text-xs">
+                            {formatCurrency(inv.doctor_fee ?? 0)}
+                          </td>
+                          <td className="px-5 py-4 font-medium font-mono text-muted-foreground text-xs">
+                            {formatCurrency(inv.medicine_fee ?? 0)}
+                          </td>
+                          <td className="px-5 py-4 font-medium font-mono text-muted-foreground text-xs">
+                            {formatCurrency(inv.room_fee ?? 0)}
+                          </td>
+                          <td className="px-5 py-4">
+                            <StatusBadge status={inv.status} />
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground font-medium text-xs">
+                            {inv.issued_at ? formatDateShort(inv.issued_at) : "—"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ViewContentCard>
+        </ViewMain>
+      </ViewLayout>
     );
   }
 
@@ -377,19 +393,19 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5 space-y-3">
+    <div className={cn("rounded-2xl bg-card p-6 space-y-4 shadow-sm transition-all hover:shadow-md", bg)}>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
         <div
           className={cn(
-            "flex size-8 items-center justify-center rounded-lg",
-            bg,
+            "flex size-10 items-center justify-center rounded-xl bg-background/50 shadow-sm border border-border/40",
+            color
           )}
         >
-          <Icon className={cn("size-4", color)} />
+          <Icon className="size-5" />
         </div>
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
+      <p className="text-3xl font-black tracking-tight text-foreground">{value}</p>
     </div>
   );
 }
@@ -409,7 +425,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+        "inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm border border-border/50",
         map[status] ?? "bg-muted text-muted-foreground",
       )}
     >
@@ -420,7 +436,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+    <th className="px-5 py-4 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
       {children}
     </th>
   );

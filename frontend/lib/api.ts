@@ -198,6 +198,13 @@ export function registerPatient(
 
 // ─── Admin Endpoints ─────────────────────────────────────────────────────────
 
+export interface AdminStats {
+  totalPatients: number;
+  totalDoctors: number;
+  totalTickets: number;
+  totalRevenue: number;
+}
+
 /** GET /api/admin/stats — normalises API response `{patients, doctors, tickets, revenue}` to `AdminStats` */
 export async function getAdminStats(): Promise<AdminStats> {
   const raw = await get<{

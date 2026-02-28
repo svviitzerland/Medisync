@@ -29,6 +29,13 @@ import {
   type AISuggestion,
   type PrescriptionItem,
 } from "@/lib/api";
+import {
+  ViewLayout,
+  ViewMain,
+  ViewHeader,
+  ViewContentCard,
+  ViewModal,
+} from "@/components/dashboard/view-layout";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -281,120 +288,125 @@ export default function DoctorView({ userId }: { userId: string }) {
 
   // ---- PATIENT QUEUE (default) ----
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Patient Queue</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your assigned patients awaiting examination
-          </p>
-        </div>
-        <button
-          onClick={fetchMyTickets}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+    <ViewLayout>
+      <ViewMain className="max-w-4xl">
+        <ViewHeader
+          title="Patient Queue"
+          description="Your assigned patients awaiting examination"
         >
-          <RefreshCw className="size-3.5" />
-          Refresh
-        </button>
-      </div>
+          <Button
+            variant="outline"
+            onClick={fetchMyTickets}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+            Refresh
+          </Button>
+        </ViewHeader>
 
-      {loading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-24 animate-pulse rounded-xl border border-border/30 bg-card"
-            />
-          ))}
-        </div>
-      ) : tickets.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-xl border border-border/50 text-muted-foreground">
-          <Stethoscope className="size-10 opacity-30" />
-          <p className="text-sm">No patients in your queue</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {tickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="rounded-xl border border-border/40 bg-card p-4 hover:bg-muted/10 transition-colors"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <User className="size-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <p className="font-semibold">
-                      {ticket.profiles?.name ?? "Unknown"}
-                    </p>
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-                        STATUS_COLORS[ticket.status] ??
-                        "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {ticket.status?.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    NIK: {ticket.profiles?.nik} · Age: {ticket.profiles?.age}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
-                    {ticket.fo_note}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-                    <Clock className="size-3" />
-                    {formatDate(ticket.created_at)}
-                  </div>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  {ticket.profiles && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewHistory(ticket.profiles!)}
-                      className="gap-1.5"
-                    >
-                      <History className="size-3.5" />
-                      History
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelectedTicket(ticket);
-                      setDoctorNote(ticket.doctor_note ?? "");
-                      setPrescriptions([]);
-                      setSubmitError(null);
-                      setSubmitSuccess(false);
-                      setAiSuggestion(null);
-                    }}
-                    className="gap-1.5"
-                  >
-                    <ChevronRight className="size-3.5" />
-                    Examine
-                  </Button>
-                </div>
-              </div>
+        <ViewContentCard>
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-28 animate-pulse rounded-xl border border-border/30 bg-muted/20"
+                />
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          ) : tickets.length === 0 ? (
+            <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/50 bg-muted/5 text-muted-foreground">
+              <Stethoscope className="size-10 opacity-30" />
+              <p className="text-sm font-medium">No patients in your queue</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {tickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  className="rounded-xl border border-border/40 bg-card p-4 hover:bg-muted/10 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <User className="size-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <p className="font-semibold">
+                          {ticket.profiles?.name ?? "Unknown"}
+                        </p>
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+                            STATUS_COLORS[ticket.status] ??
+                            "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {ticket.status?.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        NIK: {ticket.profiles?.nik} · Age: {ticket.profiles?.age}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
+                        {ticket.fo_note}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
+                        <Clock className="size-3" />
+                        {formatDate(ticket.created_at)}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      {ticket.profiles && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewHistory(ticket.profiles!)}
+                          className="gap-1.5"
+                        >
+                          <History className="size-3.5" />
+                          History
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTicket(ticket);
+                          setDoctorNote(ticket.doctor_note ?? "");
+                          setPrescriptions([]);
+                          setSubmitError(null);
+                          setSubmitSuccess(false);
+                          setAiSuggestion(null);
+                        }}
+                        className="gap-1.5"
+                      >
+                        <ChevronRight className="size-3.5" />
+                        Examine
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ViewContentCard>
+      </ViewMain>
 
       {/* Examination Modal */}
-      {selectedTicket && (
-        <Modal
-          title={`Examine: ${selectedTicket.profiles?.name ?? "Patient"}`}
-          onClose={() => setSelectedTicket(null)}
-        >
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-            <div className="rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
-              <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider mb-1">
+      <ViewModal
+        isOpen={!!selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+        title={`Examine: ${selectedTicket?.profiles?.name ?? "Patient"}`}
+        description="Review triage, diagnose, and prescribe medicine"
+        icon={<Stethoscope className="size-6" />}
+      >
+        {selectedTicket && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-border/40 bg-muted/20 p-5 text-sm shadow-inner">
+              <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider mb-2">
                 Patient Complaint
               </p>
-              <p>{selectedTicket.fo_note}</p>
+              <p className="leading-relaxed text-foreground/90">{selectedTicket.fo_note}</p>
             </div>
 
             {/* Pre-assessment Q&A */}
@@ -430,7 +442,7 @@ export default function DoctorView({ userId }: { userId: string }) {
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Diagnosis & Treatment Notes</Label>
                 <button
@@ -469,7 +481,7 @@ export default function DoctorView({ userId }: { userId: string }) {
             )}
 
             {/* Prescriptions */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center gap-1.5">
                   <Pill className="size-3.5" />
@@ -578,79 +590,86 @@ export default function DoctorView({ userId }: { userId: string }) {
               </div>
             )}
 
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end pt-4 border-t border-border/40">
               <Button
+                size="lg"
                 onClick={handleSubmitExamination}
                 disabled={submitting || !doctorNote.trim() || submitSuccess}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto mt-2"
               >
                 {submitting ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="size-5 animate-spin" />
                 ) : (
-                  <Send className="size-4" />
+                  <Send className="size-5" />
                 )}
-                Complete Examination
+                {submitting ? "Completing..." : "Complete Examination"}
               </Button>
             </div>
           </div>
-        </Modal>
-      )}
+        )}
+      </ViewModal>
 
       {/* Patient History Modal */}
-      {historyPatient && (
-        <Modal
-          title={`Medical History: ${historyPatient.name}`}
-          onClose={() => {
-            setHistoryPatient(null);
-            setHistory([]);
-          }}
-        >
-          {loadingHistory ? (
-            <div className="flex h-32 items-center justify-center">
-              <Loader2 className="size-6 animate-spin text-primary" />
-            </div>
-          ) : history.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No visit history found
-            </p>
-          ) : (
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              {history.map((h) => (
-                <div
-                  key={h.id}
-                  className="rounded-lg border border-border/40 bg-muted/10 p-4 space-y-1.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                        STATUS_COLORS[h.status] ??
-                        "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {h.status?.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(h.created_at)}
-                    </span>
+      <ViewModal
+        isOpen={!!historyPatient}
+        onClose={() => {
+          setHistoryPatient(null);
+          setHistory([]);
+        }}
+        title={`Medical History: ${historyPatient?.name ?? "Patient"}`}
+        description="Past visits, complaints, and diagnoses"
+        icon={<History className="size-6" />}
+      >
+        {historyPatient && (
+          <div className="space-y-4">
+            {loadingHistory ? (
+              <div className="flex h-40 items-center justify-center">
+                <Loader2 className="size-6 animate-spin text-primary" />
+              </div>
+            ) : history.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 border border-dashed rounded-2xl border-border/40 bg-muted/10 text-muted-foreground">
+                <History className="size-8 mb-3 opacity-20" />
+                <p className="text-sm">No visit history found</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {history.map((h) => (
+                  <div
+                    key={h.id}
+                    className="rounded-2xl border border-border/40 bg-muted/10 p-5 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow-sm",
+                          STATUS_COLORS[h.status] ??
+                          "bg-muted text-muted-foreground border-border",
+                        )}
+                      >
+                        {h.status?.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {formatDate(h.created_at)}
+                      </span>
+                    </div>
+                    <div className="rounded-xl bg-background/50 p-3 border border-border/50">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">FO Complaint</p>
+                      <p className="text-sm text-foreground/90">{h.fo_note}</p>
+                    </div>
+                    {h.doctor_note && (
+                      <div className="rounded-xl bg-primary/5 p-3 border border-primary/20">
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Doctor Diagnosis / Notes</p>
+                        <p className="text-sm text-foreground/90">{h.doctor_note}</p>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Complaint:</span>{" "}
-                    {h.fo_note}
-                  </p>
-                  {h.doctor_note && (
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Diagnosis:</span>{" "}
-                      {h.doctor_note}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </Modal>
-      )}
-    </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </ViewModal>
+    </ViewLayout>
   );
 }
 
@@ -674,33 +693,3 @@ function formatAISuggestion(s: AISuggestion): string {
     .join("\n");
 }
 
-function Modal({
-  title,
-  children,
-  onClose,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-border/50 bg-card shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
-          <h3 className="font-semibold">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-        <div className="p-5">{children}</div>
-      </div>
-    </div>
-  );
-}
