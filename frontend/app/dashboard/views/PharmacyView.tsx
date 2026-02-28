@@ -108,22 +108,7 @@ export default function PharmacyView({ userId: _userId }: { userId: string }) {
 
       if (tError) throw tError;
 
-      // 3. Create invoice with medicine_fee
-      const medicineFee = group.items.reduce((acc, item) => {
-        return acc + (item.catalog_medicines?.price ?? 0) * item.quantity;
-      }, 0);
-
-      const { error: invError } = await supabase
-        .from("invoices")
-        .insert({
-          ticket_id: group.ticketId,
-          medicine_fee: medicineFee,
-          status: "unpaid"
-        });
-
-      if (invError) throw invError;
-
-      alert("Prescription completed & invoice generated!");
+      alert("Prescription completed!");
       fetchPrescriptions();
     } catch (err: any) {
       console.error(err);
