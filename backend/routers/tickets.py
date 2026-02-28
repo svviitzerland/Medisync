@@ -55,9 +55,19 @@ async def create_ticket(
     """
     try:
         nurse_team_id = None
+        room_id = None
 
         if requires_inpatient:
-            # round-robin ...
+            # 1. Assign Room
+            rooms_res = supabase.table("rooms").select("id").eq("status", "available").limit(1).execute()
+            if not rooms_res.data:
+                raise HTTPException(status_code=400, detail="No available rooms for inpatient admission")
+            
+            room_id = rooms_res.data[0]["id"]
+            # Mark room as occupied
+            supabase.table("rooms").update({"status": "occupied"}).eq("id", room_id).execute()
+
+            # 2. round-robin nurse team
             nurses_res = supabase.table("profiles").select("team_id").eq("role", "nurse").not_.is_("team_id", "null").execute()
             active_teams = (
                 set([n["team_id"] for n in nurses_res.data])
@@ -94,6 +104,8 @@ async def create_ticket(
 
         if nurse_team_id:
             payload["nurse_team_id"] = nurse_team_id
+        if room_id:
+            payload["room_id"] = room_id
 
         data, count = supabase.table("tickets").insert(payload).execute()
         return {
@@ -201,14 +213,30 @@ async def complete_checkup(
     new_status = "completed"
 
     try:
-        # 1. Update ticket
+        # 0. Check if there was a room assigned, to release it
+        ticket_res = supabase.table("tickets").select("room_id").eq("id", ticket_id).execute()
+        room_id_to_release = None
+        if ticket_res.data and ticket_res.data[0].get("room_id"):
+            room_id_to_release = ticket_res.data[0]["room_id"]
+
+        # 1. Update ticket & release associations
         data, count = (
             supabase.table("tickets")
-            .update({"doctor_note": doctor_note, "status": new_status})
+            .update({
+                "doctor_note": doctor_note, 
+                "status": new_status,
+                "room_id": None,
+                "nurse_team_id": None
+            })
             .eq("id", ticket_id)
             .execute()
         )
         ticket = data[1][0] if data[1] else None
+
+        # Release the room itself
+        if room_id_to_release:
+            supabase.table("rooms").update({"status": "available"}).eq("id", room_id_to_release).execute()
+
 
         # 2. Create prescriptions if any
         medicine_fee = 0.0
