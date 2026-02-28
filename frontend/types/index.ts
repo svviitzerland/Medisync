@@ -20,22 +20,22 @@ export interface PatientProfile {
 }
 
 export interface DoctorProfile {
+  id?: string;
   name: string;
   specialization?: string;
-  profiles?: { name: string } | null;
 }
 
 // ─── Tickets ─────────────────────────────────────────────────────────────────
 
 export interface Ticket {
-  id: string; // UUID
+  id: string;
   fo_note: string;
   doctor_note: string | null;
   status: TicketStatus;
   created_at: string;
-  nurse_team_id?: number | null; // INT references nurse_teams(id)
-  profiles?: PatientProfile | null;
-  doctors?: DoctorProfile | null;
+  nurse_team_id?: string | null;
+  profiles?: PatientProfile | null;           // patient info via patient_id
+  doctor_profiles?: DoctorProfile | null;     // doctor info via doctor_id
 }
 
 // ─── AI Types ────────────────────────────────────────────────────────────────

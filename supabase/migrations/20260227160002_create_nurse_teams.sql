@@ -4,6 +4,11 @@ CREATE TABLE nurse_teams (
     name VARCHAR(50) NOT NULL
 );
 
+-- Add FK from profiles.team_id → nurse_teams.id
+ALTER TABLE profiles
+  ADD CONSTRAINT fk_profiles_team_id
+  FOREIGN KEY (team_id) REFERENCES nurse_teams(id) ON DELETE SET NULL;
+
 -- RLS: nurse_teams
 ALTER TABLE nurse_teams ENABLE ROW LEVEL SECURITY;
 
