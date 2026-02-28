@@ -6,8 +6,8 @@ const stats = [
   },
   {
     value: "AI",
-    label: "Triage Engine",
-    description: "Automated specialist matching & severity analysis",
+    label: "Orchestrator",
+    description: "Central AI engine for triage, routing & care coordination",
   },
   {
     value: "100%",
@@ -23,10 +23,7 @@ const stats = [
 
 export function StatsSection() {
   return (
-    <section
-      className="overflow-hidden"
-      aria-labelledby="stats-heading"
-    >
+    <section className="overflow-hidden" aria-labelledby="stats-heading">
       {/* Background */}
       <div className="relative gradient-primary">
         <div

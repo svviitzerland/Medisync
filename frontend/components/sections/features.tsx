@@ -3,7 +3,7 @@ import {
   ClipboardListIcon,
   StethoscopeIcon,
   PillIcon,
-  UsersIcon,
+  SparklesIcon,
   LayoutDashboardIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -11,17 +11,25 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 const features = [
   {
     icon: BrainCircuitIcon,
-    title: "AI-Powered Triage",
+    title: "AI Self Health Check",
     description:
-      "Our AI analyzes patient-reported symptoms and medical history to determine severity and recommend the most suitable specialist, reducing wait times and improving care outcomes.",
+      "Patients describe their symptoms from home and receive an instant AI pre-assessment covering severity level, suggested specialist, and clinical notes, before a doctor ever opens the ticket.",
     accent: "text-primary",
     bg: "bg-primary/8",
+  },
+  {
+    icon: SparklesIcon,
+    title: "AI Orchestrator",
+    description:
+      "The AI Orchestrator is the central brain of Medisync. It coordinates pre-assessment, severity triage, specialist routing, and care handoffs across every role, automatically and in real time.",
+    accent: "text-violet-500",
+    bg: "bg-violet-500/8",
   },
   {
     icon: ClipboardListIcon,
     title: "Health Ticket System",
     description:
-      "Patients can open a ticket themselves from their dashboard, or front office staff can create one on their behalf at check-in. Every ticket is tracked from intake through doctor consultation, nursing care, and pharmacy fulfillment.",
+      "Patients open a ticket themselves from the self-service dashboard, or front office staff can create one on arrival. Every ticket is tracked from intake through consultation, nursing care, and pharmacy fulfillment.",
     accent: "text-blue-500",
     bg: "bg-blue-500/8",
   },
@@ -29,7 +37,7 @@ const features = [
     icon: StethoscopeIcon,
     title: "Doctor & Specialist Matching",
     description:
-      "AI automatically assigns the right doctor or specialist to each ticket based on symptom analysis, availability, and specialization — no manual coordination needed.",
+      "AI automatically assigns the right doctor or specialist to each ticket based on pre-assessment results, availability, and specialization. No manual coordination needed.",
     accent: "text-green-500",
     bg: "bg-green-500/8",
   },
@@ -42,18 +50,10 @@ const features = [
     bg: "bg-orange-500/8",
   },
   {
-    icon: UsersIcon,
-    title: "Multi-Role Care Coordination",
-    description:
-      "Purpose-built dashboards for every role: Patient, Front Office, Doctor, Nurse, Pharmacist, and Admin — each with the right tools and visibility for their part of the care journey.",
-    accent: "text-purple-500",
-    bg: "bg-purple-500/8",
-  },
-  {
     icon: LayoutDashboardIcon,
     title: "Real-Time Status Tracking",
     description:
-      "Patients and staff can monitor ticket progress at every stage — from check-in and triage to diagnosis, inpatient care, and prescription pickup — all in one unified view.",
+      "Patients and staff monitor ticket progress at every stage, from AI pre-assessment and check-in to diagnosis, nursing care, and prescription pickup, all in one unified view.",
     accent: "text-rose-500",
     bg: "bg-rose-500/8",
   },
@@ -76,13 +76,13 @@ export function FeaturesSection() {
             id="features-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Everything your care team needs,{" "}
-            <span className="text-gradient-primary">in one platform</span>
+            AI health check,{" "}
+            <span className="text-gradient-primary">built for every role</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            Medisync brings AI intelligence and role-based workflows together so
-            patients, doctors, nurses, and pharmacists always have the right
-            information at the right time.
+            From patient self-assessment to doctor consultation and pharmacy
+            fulfillment, Medisync's AI engine powers every step of your care
+            journey.
           </p>
         </div>
 

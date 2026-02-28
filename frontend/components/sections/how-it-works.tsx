@@ -5,23 +5,23 @@ const steps = [
   {
     number: "01",
     icon: UserPlusIcon,
-    title: "Sign Up as a Patient",
+    title: "Describe Your Symptoms",
     description:
-      "Create your patient account in minutes. Provide your basic profile information and you're ready to access Medisync's full care coordination platform.",
+      "From your patient dashboard, fill in the AI Health Check form. Describe your symptoms, how long you've had them, and any relevant personal details. No medical jargon required.",
   },
   {
     number: "02",
-    icon: ClipboardPlusIcon,
-    title: "Open a Ticket — Your Way",
+    icon: SparklesIcon,
+    title: "AI Orchestrator Takes Over",
     description:
-      "Submit a health ticket yourself directly from your patient dashboard, or have front office staff create one for you when you arrive at the clinic. Either way, the AI immediately analyzes urgency and routes you to the right specialist.",
+      "Medisync's AI Orchestrator instantly analyzes your symptoms, assigns a severity level, suggests the right specialist, and opens a ticket with full clinical notes, all before you ever see a doctor.",
   },
   {
     number: "03",
-    icon: SparklesIcon,
-    title: "AI Routes You to the Right Doctor",
+    icon: ClipboardPlusIcon,
+    title: "Doctor Reviews & Prescribes",
     description:
-      "Your ticket is automatically assigned to the best-matched doctor. They review it, add their notes and prescription, and hand off to nursing or pharmacy — all within the platform.",
+      "Your matched doctor receives the AI pre-assessment, reviews your case, and issues a prescription digitally. Nursing and pharmacy are notified automatically with no phone calls and no paperwork.",
   },
 ];
 
@@ -42,12 +42,13 @@ export function HowItWorksSection() {
             id="hiw-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            From check-in to prescription,{" "}
-            <span className="text-gradient-primary">fully coordinated</span>
+            From symptoms to specialist,{" "}
+            <span className="text-gradient-primary">in minutes</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            Medisync handles the entire patient journey — no manual handoffs, no
-            lost information, no waiting for someone to make a call.
+            Medisync&apos;s AI Orchestrator handles triage and routing the
+            moment you describe your symptoms with no manual handoffs, no lost
+            information, no waiting.
           </p>
         </div>
 
