@@ -24,11 +24,11 @@ const stats = [
 export function StatsSection() {
   return (
     <section
-      className="relative overflow-hidden"
+      className="overflow-hidden"
       aria-labelledby="stats-heading"
     >
       {/* Background */}
-      <div className="gradient-primary">
+      <div className="relative gradient-primary">
         <div
           className="absolute inset-0 opacity-10"
           style={{

@@ -57,8 +57,8 @@ export function TestimonialsSection() {
             <span className="text-gradient-primary">the care journey</span>
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            From front office to pharmacy, here\'s how Medisync fits into real
-            healthcare workflows.
+            From front office to pharmacy, here&apos;s how Medisync fits into
+            real healthcare workflows.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export function TestimonialsSection() {
           {testimonials.map((t) => (
             <Card
               key={t.name}
-              className="transition-shadow border-border/60 hover:shadow-md"
+              className="border-border/60 transition-shadow duration-200 hover:shadow-md"
             >
               <CardContent className="flex flex-col gap-4 pt-6">
                 <QuoteIcon

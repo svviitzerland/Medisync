@@ -14,8 +14,8 @@ export function HeroSection() {
         className="absolute inset-0 pointer-events-none -z-10"
         aria-hidden="true"
       >
-        <div className="absolute top-0 right-0 h-150 w-150 translate-x-1/3 -translate-y-1/4 rounded-full opacity-[0.07] gradient-primary blur-3xl" />
-        <div className="absolute bottom-0 left-0 rounded-full h-100 w-100 -translate-x-1/4 translate-y-1/4 bg-primary/10 blur-3xl" />
+        <div className="absolute top-0 right-0 h-[37.5rem] w-[37.5rem] translate-x-1/3 -translate-y-1/4 rounded-full opacity-[0.07] gradient-primary blur-3xl" />
+        <div className="absolute bottom-0 left-0 rounded-full h-[25rem] w-[25rem] -translate-x-1/4 translate-y-1/4 bg-primary/10 blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.02]"
           style={{

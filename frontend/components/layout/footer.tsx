@@ -26,10 +26,11 @@ export function Footer() {
               className="flex items-center gap-2 text-lg font-semibold"
               aria-label="Medisync Home"
             >
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg gradient-primary">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg gradient-primary" aria-hidden="true">
                 <HeartPulseIcon
                   className="w-4 h-4 text-white"
                   strokeWidth={2.5}
+                  aria-hidden="true"
                 />
               </span>
               <span>
@@ -53,7 +54,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm transition-colors text-muted-foreground hover:text-foreground"
+                      className="text-sm transition-colors duration-150 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm"
                     >
                       {link.label}
                     </Link>
