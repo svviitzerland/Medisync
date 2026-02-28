@@ -1,6 +1,18 @@
-# CLAUDE.md
+<div align="center">
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# MediSync
+
+[![Claude Code](https://img.shields.io/badge/Claude_Code-Instructions-7C3AED?style=flat&logo=anthropic&logoColor=white)](https://claude.ai/code)
+[![Status](https://img.shields.io/badge/Status-Active-2EA043?style=flat)](#)
+[![Security](https://img.shields.io/badge/Security-Strict-D29922?style=flat)](#)
+
+**Repository Guidance for AI Assistants**
+
+</div>
+
+<br />
+
+This file provides guidance to Claude Code and other AI coding assistants when working with code in this repository.
 
 ## Project Overview
 
